@@ -1,0 +1,7 @@
+registry=https://registry.npmjs.org/
+@angelitosystems:registry=https://registry.npmjs.org/
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+save-exact=true
+engine-strict=true
+auto-install-peers=true
+resolution-mode=highest 

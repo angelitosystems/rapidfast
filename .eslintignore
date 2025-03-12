@@ -1,0 +1,16 @@
+# Directorios generados
+dist/
+coverage/
+node_modules/
+
+# Archivos de documentación
+rapidfast-docs/
+
+# Archivos de plantillas
+templates/
+
+# Archivos de configuración
+jest.config.js
+.eslintrc.js
+.prettierrc.js
+babel.config.js 
