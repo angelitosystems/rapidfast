@@ -7,6 +7,7 @@
 RapidFAST es un framework de Node.js inspirado en NestJS que permite crear aplicaciones backend con una estructura clara y limpia, utilizando decoradores, inyección de dependencias y una arquitectura modular.
 
 [![NPM Version](https://img.shields.io/npm/v/@angelitosystems/rapidfast.svg)](https://www.npmjs.com/package/@angelitosystems/rapidfast)
+[![Beta Version](https://img.shields.io/npm/v/@angelitosystems/rapidfast/beta.svg)](https://www.npmjs.com/package/@angelitosystems/rapidfast)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🚀 Características
@@ -38,6 +39,12 @@ npm install -g @angelitosystems/rapidfast
 
 ```bash
 npm install @angelitosystems/rapidfast
+```
+
+### Instalación de la versión beta
+
+```bash
+npm install @angelitosystems/rapidfast@beta
 ```
 
 ## 🏗️ Creación de un nuevo proyecto
@@ -385,6 +392,39 @@ Para mantener la consistencia en proyectos RapidFAST:
 - **Interfaces**: CamelCase con prefijo I (`IUserData`)
 - **DTOs**: Sufijo "Dto" (`CreateUserDto`)
 
+## 🆕 Novedades en la versión 1.0.6-beta.2
+
+### Mejoras en el proceso de publicación beta
+
+- **Scripts robustos para publicación**:
+  - Nuevo sistema de publicación beta que funciona correctamente en Windows
+  - Scripts para ignorar errores de linting durante la publicación
+  - Herramientas para incrementar automáticamente la versión beta
+
+- **Herramientas de desarrollo mejoradas**:
+  - Script para corregir automáticamente errores de linting
+  - Utilidad para actualizar TypeScript a una versión compatible con ESLint
+  - Configuración de ESLint optimizada para reducir advertencias
+
+- **Documentación específica para beta**:
+  - Nuevo archivo BETA.md con información detallada sobre la versión beta
+  - Documentación de las mejoras realizadas en el proceso de publicación
+  - Instrucciones claras para reportar problemas
+
+- **Correcciones de bugs**:
+  - Solución al problema con el operador `|| true` en Windows
+  - Mejor manejo de errores durante el proceso de publicación
+  - Compatibilidad mejorada con TypeScript 5.3+
+
+### Cambios internos
+
+- Proceso de publicación beta más robusto y resistente a errores
+- Mayor facilidad de uso con scripts simplificados
+- Mejor experiencia de desarrollo con herramientas de linting mejoradas
+- Documentación más completa para usuarios de la versión beta
+
+Para más detalles sobre las mejoras en la versión beta, consulta el archivo [BETA.md](BETA.md).
+
 ## 🆕 Novedades en la versión 1.0.4
 
 ### Mejoras principales
@@ -433,4 +473,4 @@ RapidFAST Framework y RapidWatch™ son marcas registradas y propiedad intelectu
 ---
 
 Desarrollado con ❤️ por [Angelito Systems](https://github.com/angelitosystems)  
-Copyright © 2024 Angelito Systems
+Copyright © 2025 Angelito Systems

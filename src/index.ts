@@ -1,5 +1,5 @@
 // Versión del paquete
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.6-beta.2';
 
 // Exportación principal del framework
 

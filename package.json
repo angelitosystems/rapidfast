@@ -1,6 +1,6 @@
 {
   "name": "@angelitosystems/rapidfast",
-  "version": "1.0.6-beta.1",
+  "version": "1.0.6-beta.2",
   "description": "Framework para desarrollo rápido de APIs RESTful con TypeScript y Express",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
