@@ -1,6 +1,6 @@
 {
   "name": "@angelitosystems/rapidfast",
-  "version": "1.0.6-beta.3",
+  "version": "1.0.6-beta.5",
   "description": "Framework web rápido y moderno para Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
