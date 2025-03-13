@@ -155,4 +155,4 @@ Si estás actualizando desde la versión beta.2, ten en cuenta estos cambios:
 
 ## Feedback
 
-Estamos muy interesados en escuchar tu feedback sobre estas nuevas características. Por favor, reporta cualquier problema o sugerencia en nuestro [repositorio de GitHub](https://github.com/angelitossj/rapidfast/issues).
+Estamos muy interesados en escuchar tu feedback sobre estas nuevas características. Por favor, reporta cualquier problema o sugerencia en nuestro [repositorio de GitHub](https://github.com/angelitosystems/rapidfast/issues).
