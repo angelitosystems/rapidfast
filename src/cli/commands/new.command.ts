@@ -182,7 +182,7 @@ export class NewCommand {
       packageJson.dependencies['@angelitosystems/rapidfast'] = `file:${localPackagePath}`;
     } else {
       // En modo normal, usamos la versión de npm
-      packageJson.dependencies['@angelitosystems/rapidfast'] = '^1.0.0';
+      packageJson.dependencies['@angelitosystems/rapidfast'] = '^1.0.6-beta.4';
     }
 
     const dbConfig = await this.promptForDatabaseConfig(answers['database.type']);

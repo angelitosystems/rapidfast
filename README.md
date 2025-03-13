@@ -20,6 +20,7 @@ RapidFAST es un framework de Node.js inspirado en NestJS que permite crear aplic
 - **Compatible con Express**: Construido sobre Express para máxima compatibilidad
 - **RapidWatch™**: Sistema propietario integrado de recarga automática sin dependencias externas
 - **Configurable**: Configuración flexible para diferentes entornos
+- **Swagger Integrado**: Documentación automática de API con interfaz visual
 
 ## 📋 Requisitos
 
@@ -391,6 +392,64 @@ Para mantener la consistencia en proyectos RapidFAST:
 - **Archivos**: kebab-case (`user-profile.service.ts`)
 - **Interfaces**: CamelCase con prefijo I (`IUserData`)
 - **DTOs**: Sufijo "Dto" (`CreateUserDto`)
+
+## 🆕 Novedades en la versión 1.0.6-beta.3
+
+### Soporte completo para Swagger
+
+- **Decoradores para documentación API**:
+  - `@ApiDoc` - Documenta controladores completos
+  - `@ApiParam` - Documenta parámetros de ruta
+  - `@ApiBody` - Documenta cuerpos de petición
+  - `@ApiResponse` - Documenta respuestas de endpoints
+  - `@ApiTags` - Agrupa operaciones bajo etiquetas
+
+- **Documentación automática**:
+  - Interfaz Swagger UI lista para usar en `/api-docs`
+  - Generación automática de esquema OpenAPI 3.0
+  - Endpoint JSON en `/swagger.json`
+
+### Arquitectura modular mejorada
+
+- **Sistema de módulos completo**:
+  - Módulos separados por funcionalidad (`TodoModule`, etc.)
+  - Importación en módulo raíz con `imports: [OtroModulo]`
+  - Exportación de servicios entre módulos con `exports: [MiServicio]`
+
+- **Plantilla modular en proyectos generados**:
+  - Estructura predefinida lista para escalar
+  - Ejemplo completo de CRUD implementado
+  - Separación clara de responsabilidades
+
+### Sistema de inyección de dependencias robusto
+
+- **Resolución automática de dependencias**:
+  - Detección y advertencia de clases no decoradas
+  - Inyección automática en constructores
+  - Soporte para providers con múltiples estrategias
+
+- **Mejor gestión de instancias**:
+  - Ciclo de vida de componentes optimizado
+  - Integración completa con el sistema de módulos
+
+### Experiencia de desarrollo mejorada
+
+- **Interfaz de consola enriquecida**:
+  - Banner mejorado con colores e iconos
+  - Mejor visualización de rutas registradas
+  - Información detallada de la aplicación
+
+- **RapidWatch™ optimizado**:
+  - Mejor rendimiento en detección de cambios
+  - Recarga más rápida del servidor
+  - Banner completo solo en el primer inicio
+
+- **Correcciones y optimizaciones**:
+  - Mejor compatibilidad con paquetes recientes
+  - Corrección de errores de tipos en TypeScript
+  - Optimizaciones en la estructura de archivos de proyecto
+
+Para más detalles sobre las nuevas características, consulta nuestra [documentación beta](docs/beta_3_features.md).
 
 ## 🆕 Novedades en la versión 1.0.6-beta.2
 

@@ -1,0 +1,138 @@
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Put, 
+  Delete,
+  Param,
+  Body,
+  ApiDoc,
+  ApiParam,
+  ApiBody,
+  ApiResponse
+} from '@angelitosystems/rapidfast';
+import { AppService } from '../services/app.service';
+
+// Definición del modelo Todo
+export interface Todo {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+@Controller()
+@ApiDoc({
+  tags: ['Todo'],
+  description: 'API para gestionar tareas'
+})
+export class TodoController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get('todos')
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de todas las tareas',
+    type: [Object]
+  })
+  async getAllTodos(): Promise<Todo[]> {
+    return this.appService.getAllTodos();
+  }
+
+  @Get('todos/:id')
+  @ApiParam({ name: 'id', description: 'ID de la tarea' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tarea encontrada',
+    type: Object
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tarea no encontrada'
+  })
+  async getTodoById(@Param('id') id: string): Promise<Todo> {
+    const todo = await this.appService.getTodoById(id);
+    if (!todo) {
+      throw new Error('Todo not found');
+    }
+    return todo;
+  }
+
+  @Post('todos')
+  @ApiBody({
+    description: 'Datos de la nueva tarea',
+    required: true,
+    content: {
+      'application/json': {
+        schema: {
+          example: {
+            title: 'Nueva tarea',
+            description: 'Descripción de la tarea',
+            completed: false
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Tarea creada exitosamente',
+    type: Object
+  })
+  async createTodo(@Body() todo: Omit<Todo, "id">): Promise<Todo> {
+    return this.appService.createTodo(todo);
+  }
+
+  @Put('todos/:id')
+  @ApiParam({ name: 'id', description: 'ID de la tarea' })
+  @ApiBody({
+    description: 'Datos a actualizar',
+    required: true,
+    content: {
+      'application/json': {
+        schema: {
+          example: {
+            title: 'Tarea actualizada',
+            description: 'Nueva descripción',
+            completed: true
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tarea actualizada correctamente',
+    type: Object
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tarea no encontrada'
+  })
+  async updateTodo(
+    @Param('id') id: string, 
+    @Body() updates: Partial<Todo>
+  ): Promise<Todo> {
+    const todo = await this.appService.updateTodo(id, updates);
+    if (!todo) {
+      throw new Error('Todo not found');
+    }
+    return todo;
+  }
+
+  @Delete('todos/:id')
+  @ApiParam({ name: 'id', description: 'ID de la tarea' })
+  @ApiResponse({
+    status: 204,
+    description: 'Tarea eliminada correctamente'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tarea no encontrada'
+  })
+  async deleteTodo(@Param('id') id: string): Promise<void> {
+    await this.appService.deleteTodo(id);
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@angelitosystems/rapidfast",
-  "version": "1.0.6-beta.2",
+  "version": "1.0.6-beta.4",
   "description": "Framework web rápido y moderno para Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,28 @@
     "copy-templates": "copyfiles -u 1 \"templates/**/*\" dist/",
     "test": "jest",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test",
+    "publish:all": "npm run publish:npm",
+    "publish:npm": "npm publish --access=public --registry=https://registry.npmjs.org/",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "publish:github": "npm config set //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} && npm publish --registry=https://npm.pkg.github.com --scope=@angelitosystems",
+    "publish:all:github": "npm run publish:npm && npm run publish:github",
+    "bump": "node scripts/bump-version.js",
+    "bump:minor": "node scripts/bump-version.js minor",
+    "bump:major": "node scripts/bump-version.js major",
+    "bump:beta": "node scripts/bump-version.js patch --beta",
+    "bump:minor:beta": "node scripts/bump-version.js minor --beta",
+    "bump:major:beta": "node scripts/bump-version.js major --beta",
+    "publish:beta": "npm publish --tag beta --access=public --registry=https://registry.npmjs.org/",
+    "publish:beta:force": "npm publish --tag beta --access=public --registry=https://registry.npmjs.org/ --ignore-scripts",
+    "release:beta": "npm run bump:beta && npm run build && npm run publish:beta",
+    "release:beta:force": "npm run bump:beta && npm run build && npm run publish:beta:force",
+    "publish:beta:script": "node scripts/publish-beta.js",
+    "publish:beta:script:force": "node scripts/publish-beta.js --force",
+    "fix:lint": "node scripts/fix-lint.js",
+    "update:typescript": "node scripts/update-typescript.js"
+    
   },
   "keywords": [
     "framework",
