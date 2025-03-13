@@ -1,6 +1,6 @@
 {
   "name": "@angelitosystems/rapidfast",
-  "version": "1.0.6-beta.4",
+  "version": "1.0.6-beta.3",
   "description": "Framework web rápido y moderno para Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -39,7 +39,10 @@
     "typescript",
     "api",
     "rest",
-    "swagger"
+    "swagger",
+    "rapidfast",
+    "angelitosystems",
+    "express"
   ],
   "author": "Angel Systems",
   "license": "MIT",
@@ -104,8 +107,8 @@
     "url": "git+https://github.com/angelitossj/rapidfast.git"
   },
   "bugs": {
-    "url": "https://github.com/angelitosystems/rapidfast/issues"
+    "url": "https://github.com/angelitossj/rapidfast/issues"
   },
-  "homepage": "https://github.com/angelitosystems/rapidfast#readme",
+  "homepage": "https://github.com/angelitossj/rapidfast#readme",
   "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }
