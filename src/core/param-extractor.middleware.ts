@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { Request, Response, NextFunction } from '../interfaces/http.interface';
+import { ParamMetadata } from '../interfaces/param.interface';
 
 /**
  * Middleware para extraer parámetros de la solicitud según los decoradores
@@ -7,10 +8,10 @@ import { Request, Response, NextFunction } from '../interfaces/http.interface';
  * @param methodName Nombre del método
  */
 export function paramExtractorMiddleware(controllerClass: any, methodName: string) {
-  return async (req: any, res: any, next: any) => {
+  return async (req: Request & { _params?: any[] }, res: Response, next: NextFunction) => {
     try {
       // Obtener los metadatos de parámetros
-      const paramMetadata = Reflect.getMetadata('params', controllerClass.prototype, methodName) || [];
+      const paramMetadata: ParamMetadata[] = Reflect.getMetadata('params', controllerClass.prototype, methodName) || [];
       
       // Si no hay metadatos, continuar
       if (!paramMetadata.length) {
@@ -18,7 +19,7 @@ export function paramExtractorMiddleware(controllerClass: any, methodName: strin
       }
       
       // Ordenar los parámetros por índice
-      paramMetadata.sort((a: any, b: any) => a.index - b.index);
+      paramMetadata.sort((a, b) => a.index - b.index);
       
       // Añadir los parámetros a la solicitud para que estén disponibles en el controlador
       req._params = [];
@@ -29,7 +30,7 @@ export function paramExtractorMiddleware(controllerClass: any, methodName: strin
         
         switch (param.type) {
           case 'param':
-            value = req.params[param.name];
+            value = param.name ? req.params[param.name] : undefined;
             break;
           case 'body':
             value = req.body;
@@ -50,8 +51,19 @@ export function paramExtractorMiddleware(controllerClass: any, methodName: strin
             value = undefined;
         }
         
+        // Validar y transformar el valor si es necesario
+        if (param.transform) {
+          try {
+            value = await param.transform(value);
+          } catch (error) {
+            return next(error);
+          }
+        }
+        
         // Almacenar el valor en la solicitud
-        req._params[param.index] = value;
+        if (Array.isArray(req._params)) {
+          req._params[param.index] = value;
+        }
       }
       
       next();

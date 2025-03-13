@@ -1,60 +1,22 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  Query,
-  Headers,
-  Req,
-  Res,
-  Request,
-  Response
-} from '@angelitosystems/rapidfast';
+import { Controller, Get } from '@angelitosystems/rapidfast';
 import { AppService } from './app.service';
-import { Mensaje, EstadoServidor } from './interfaces';
 
-@Controller('/')
+@Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  async getHello(@Req() req: Request, @Res() res: Response): Promise<Mensaje> {
-    return this.appService.getHello();
+  @Get('/')
+  getHello(): string {
+    return this.appService.getWelcomeMessage();
   }
 
-  @Get('estado')
-  async getEstado(@Req() req: Request, @Res() res: Response): Promise<EstadoServidor> {
-    return this.appService.getEstado();
+  @Get('/estado')
+  getStatus(): object {
+    return {
+      estado: 'activo',
+      uptime: process.uptime(),
+      memoria: process.memoryUsage(),
+      version: process.version
+    };
   }
-
-  @Post('mensaje')
-  async createMensaje(
-    @Body() mensaje: Mensaje,
-    @Req() req: Request,
-    @Res() res: Response
-  ): Promise<Mensaje> {
-    return this.appService.createMensaje(mensaje);
-  }
-
-  @Put('mensaje/:id')
-  async updateMensaje(
-    @Param('id') id: string,
-    @Body() mensaje: Mensaje,
-    @Req() req: Request,
-    @Res() res: Response
-  ): Promise<Mensaje> {
-    return this.appService.updateMensaje(id, mensaje);
-  }
-
-  @Delete('mensaje/:id')
-  async deleteMensaje(
-    @Param('id') id: string,
-    @Req() req: Request,
-    @Res() res: Response
-  ): Promise<void> {
-    await this.appService.deleteMensaje(id);
-  }
-} 
+}

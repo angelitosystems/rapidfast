@@ -1,0 +1,74 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## 🚀 Inicio Rápido
+
+1. **Instalación de dependencias**
+   ```bash
+   npm install
+   # o
+   pnpm install
+   # o
+   yarn install
+   ```
+
+2. **Desarrollo**
+   ```bash
+   npm run dev
+   # o
+   pnpm dev
+   # o
+   yarn dev
+   ```
+   El servidor se iniciará en `http://localhost:3000` y la documentación de Swagger se abrirá automáticamente en tu navegador.
+
+3. **Producción**
+   ```bash
+   npm run build
+   npm start
+   # o
+   pnpm build
+   pnpm start
+   # o
+   yarn build
+   yarn start
+   ```
+
+## 📚 Documentación API
+
+La documentación de la API está disponible en:
+- Swagger UI: `http://localhost:3000/api-docs`
+- Swagger JSON: `http://localhost:3000/swagger.json`
+
+## 🛠️ Scripts Disponibles
+
+- `npm run dev` - Inicia el servidor en modo desarrollo con recarga automática
+- `npm run build` - Compila el proyecto para producción
+- `npm start` - Inicia el servidor en modo producción
+- `npm run test` - Ejecuta las pruebas
+- `npm run lint` - Ejecuta el linter
+- `npm run format` - Formatea el código
+
+## 📝 Ejemplo de API
+
+El proyecto incluye un ejemplo de API REST para gestionar tareas (TODOs) con las siguientes operaciones:
+
+- `GET /todos` - Obtener todas las tareas
+- `GET /todos/:id` - Obtener una tarea por ID
+- `POST /todos` - Crear una nueva tarea
+- `PUT /todos/:id` - Actualizar una tarea existente
+- `DELETE /todos/:id` - Eliminar una tarea
+
+Cada endpoint está completamente documentado en Swagger con ejemplos de uso y descripciones detalladas.
+
+## 🔧 Tecnologías
+
+- [RapidFast](https://github.com/angelitosystems/rapidfast) - Framework web moderno y rápido
+- TypeScript - Lenguaje de programación tipado
+- Swagger/OpenAPI - Documentación de API
+- Jest - Framework de pruebas
+
+## 📄 Licencia
+
+ISC 

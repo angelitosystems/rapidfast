@@ -14,4 +14,5 @@ export interface ParamMetadata {
   index: number;
   type: ParamType;
   name?: string;
+  transform?: (value: any) => Promise<any> | any;
 }

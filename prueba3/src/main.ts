@@ -1,0 +1,14 @@
+import { Application } from "@angelitosystems/rapidfast";
+import { AppModule } from "./app/app.module";
+
+async function bootstrap() {
+  const app = new Application();
+
+  // Inicializar la aplicación con el módulo principal
+  await app.initialize([AppModule]);
+  await app.listen(3000);
+
+  console.log("Servidor iniciado en http://localhost:3000");
+}
+
+bootstrap().catch(console.error);

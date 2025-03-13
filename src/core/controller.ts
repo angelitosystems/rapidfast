@@ -1,30 +1,27 @@
 import { Request, Response, NextFunction } from '../interfaces/http.interface';
-import { Controller as IController, RouteHandler } from '../interfaces/controller.interface';
+import { RouteHandler, Controller as IController } from '../interfaces/controller.interface';
 
-export abstract class Controller implements IController {
-  protected req!: Request;
-  protected res!: Response;
-  protected next!: NextFunction;
+// Clase base para todos los controladores
+export abstract class Controller {
+  [key: string]: RouteHandler | any;
 
-  protected setContext(req: Request, res: Response, next: NextFunction): void {
-    this.req = req;
-    this.res = res;
-    this.next = next;
+  // Métodos comunes que todos los controladores pueden usar
+  protected send(res: Response, data: any, status: number = 200): void {
+    res.status(status).json(data);
   }
 
-  protected success<T>(data: T, message: string = 'Success'): void {
-    this.res.json({
-      success: true,
-      message,
+  protected success<T>(data: T, message: string = 'Success'): { data: T; message: string } {
+    return {
       data,
-    });
+      message
+    };
   }
 
-  protected error(message: string, statusCode: number = 400): void {
-    this.res.status(statusCode).json({
-      success: false,
-      message,
-    });
+  protected error(message: string, status: number = 400): { error: string; status: number } {
+    return {
+      error: message,
+      status
+    };
   }
 
   protected async handle(handler: RouteHandler): Promise<void> {

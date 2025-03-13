@@ -18,6 +18,8 @@ export interface ModuleMetadata {
 }
 
 export interface Module {
+  controllers: Type[];
+  prefix?: string;
   configure(): void;
   onInit?(): Promise<void>;
   onDestroy?(): Promise<void>;

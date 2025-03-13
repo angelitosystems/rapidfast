@@ -9,6 +9,11 @@ import { GenerateCommand } from '../commands/generate.command';
 import { FixCommand } from '../commands/fix.command';
 import { VERSION } from '../../index';
 
+// Establecer NODE_ENV si no está definido
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production';
+}
+
 const program = new Command();
 
 // Mostrar banner
@@ -24,7 +29,8 @@ console.log(
 
 program
   .version(VERSION)
-  .description('RapidFAST Framework CLI - Desarrollo rápido de APIs RESTful');
+  .description('RapidFAST Framework CLI - Desarrollo rápido de APIs RESTful')
+  .option('--local', 'Usar versión local de RapidFast (para desarrollo)', false);
 
 // Comando new
 program
@@ -38,6 +44,10 @@ program
     'npm'
   )
   .action(async (name: string, options) => {
+    // Si se especificó --local en el comando principal
+    if (program.opts().local) {
+      process.env.RAPIDFAST_LOCAL = 'true';
+    }
     const command = new NewCommand();
     await command.execute(name, options);
   });

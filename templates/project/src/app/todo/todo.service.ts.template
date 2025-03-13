@@ -1,9 +1,9 @@
 import { Injectable } from '@angelitosystems/rapidfast';
 import { randomUUID } from 'crypto';
-import { Todo } from './todo/todo.controller';
+import { Todo } from './todo.controller';
 
 @Injectable()
-export class AppService {
+export class TodoService {
   private todos: Todo[] = [];
 
   constructor() {
@@ -66,10 +66,5 @@ export class AppService {
     const initialLength = this.todos.length;
     this.todos = this.todos.filter(todo => todo.id !== id);
     return this.todos.length !== initialLength;
-  }
-
-  // Un método simple para la página de inicio
-  getWelcomeMessage(): string {
-    return '¡Bienvenido a la API de RapidFAST!';
   }
 }

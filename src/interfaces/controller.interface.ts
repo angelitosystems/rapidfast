@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from './http.interface';
+import { Type } from './type.interface';
 
 export interface RouteHandler {
   (req: Request, res: Response, next: NextFunction): Promise<any> | any;
 }
 
-export interface Controller {
-  [key: string]: RouteHandler | any;
+export interface Controller extends Type {
+  prototype: {
+    [key: string]: RouteHandler | any;
+  };
 }
 
 export interface ControllerMetadata {
@@ -19,4 +22,5 @@ export interface RouteDefinition {
   methodName: string;
   handler: RouteHandler;
   middleware?: RouteHandler[];
+  controller?: any;
 } 

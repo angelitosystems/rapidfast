@@ -12,7 +12,7 @@ type ResourceType = 'controller' | 'service' | 'module' | 'entity' | 'middleware
 
 export class GenerateCommand {
   private readonly logger: Logger;
-  private spinner: ora.Ora;
+  private spinner: ReturnType<typeof ora>;
   private readonly templates = {
     controller: 'controller.template.ts',
     service: 'service.template.ts',

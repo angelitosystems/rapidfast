@@ -4,15 +4,18 @@ import { Logger } from '../utils/logger';
 import { Type } from '../interfaces/type.interface';
 import { ModuleMetadata } from '../interfaces/module.interface';
 import 'reflect-metadata';
+import { DependencyContainer } from './dependency.container';
 
 export class RapidFastApplication {
   private server: Server;
   private logger: Logger;
   private modules: Type[] = [];
+  private dependencyContainer: DependencyContainer;
 
   constructor() {
     this.server = new Server();
     this.logger = new Logger();
+    this.dependencyContainer = new DependencyContainer();
   }
 
   /**
@@ -28,19 +31,45 @@ export class RapidFastApplication {
 
   public async initialize(modules: Type[]): Promise<void> {
     try {
+      // Lista para almacenar las instancias de controladores
+      const controllerInstances: any[] = [];
+      
       for (const module of modules) {
         const metadata: ModuleMetadata = Reflect.getMetadata('module', module) || {};
         
+        // Registrar módulo
+        this.modules.push(module);
+        
+        // Registrar providers (servicios)
+        if (metadata.providers) {
+          for (const provider of metadata.providers) {
+            this.dependencyContainer.register(provider);
+          }
+        }
+        
+        // Registrar controladores
         if (metadata.controllers) {
           for (const controller of metadata.controllers) {
+            const instance = this.dependencyContainer.resolve(controller);
             const prefix: string = Reflect.getMetadata('prefix', controller) || '';
             const routes: RouteDefinition[] = Reflect.getMetadata('routes', controller) || [];
             
-            // Registrar las rutas en el servidor
-            this.server.addRoutes(prefix, routes);
+            // Almacenar instancia de controlador
+            controllerInstances.push(instance);
+            
+            // Registrar las rutas en el servidor con la instancia del controlador
+            this.server.addRoutesWithController(prefix, routes, instance);
           }
         }
       }
+      
+      // Configurar Swagger con los controladores instanciados
+      this.server.setupSwagger({
+        title: 'RapidFAST API',
+        description: 'API generada con RapidFAST Framework',
+        version: '1.0.0'
+      }, controllerInstances);
+      
     } catch (error) {
       this.logger.error('Error al inicializar la aplicación:', error);
       throw error;

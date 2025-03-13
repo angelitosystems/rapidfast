@@ -7,8 +7,11 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { execAsync } from '../../utils/exec';
+import * as globCb from 'glob'; // Import the callback-based glob
 
-const execAsync = promisify(exec);
+const execAsyncPromisified = promisify(exec);
+const glob = promisify(globCb.glob); // Promisify the glob function
 
 interface NewCommandOptions {
   directory?: string;
@@ -18,13 +21,22 @@ interface NewCommandOptions {
 }
 
 interface DatabaseConfig {
-  type: string;
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  database: string;
+  dependencies: Record<string, string>;
+  type?: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  database?: string;
   url?: string;
+}
+
+interface ProjectAnswers {
+  description: string;
+  author: string;
+  packageManager: string;
+  'database.type': string;
+  features: string[];
 }
 
 interface ProjectConfig {
@@ -32,20 +44,19 @@ interface ProjectConfig {
   description: string;
   author: string;
   packageManager: string;
-  database: {
-    type: string;
-    config: DatabaseConfig;
-  };
+  'database.type': string;
   features: string[];
 }
 
 export class NewCommand {
   private readonly logger: Logger;
-  private spinner: ora.Ora;
+  private spinner: ReturnType<typeof ora>;
+  private isLocal: boolean;
 
   constructor() {
     this.logger = new Logger();
     this.spinner = ora();
+    this.isLocal = process.env.NODE_ENV === 'development' || process.env.RAPIDFAST_LOCAL === 'true';
   }
 
   private async checkPackageManager(pm: string): Promise<boolean> {
@@ -69,160 +80,74 @@ export class NewCommand {
   }
 
   private async promptForProjectDetails(name: string): Promise<ProjectConfig> {
-    const availableManagers = await this.detectAvailablePackageManagers();
-    
-    if (availableManagers.length === 0) {
-      throw new Error('No se encontró ningún gestor de paquetes instalado (npm, yarn, pnpm)');
-    }
-
     const answers = await inquirer.prompt([
       {
         type: 'input',
         name: 'description',
         message: 'Descripción del proyecto:',
-        default: `Proyecto RapidFAST ${name}`,
+        default: 'Un proyecto RapidFAST'
       },
       {
         type: 'input',
         name: 'author',
-        message: 'Autor del proyecto:',
-        default: await this.getGitUser(),
+        message: 'Autor:',
+        default: process.env.USER || process.env.USERNAME
       },
       {
         type: 'list',
         name: 'packageManager',
-        message: 'Selecciona el gestor de paquetes:',
-        choices: availableManagers,
-        default: availableManagers[0],
+        message: 'Gestor de paquetes:',
+        choices: ['npm', 'yarn', 'pnpm'],
+        default: 'npm'
       },
       {
         type: 'list',
         name: 'database.type',
-        message: 'Selecciona el motor de base de datos:',
-        choices: [
-          { name: 'MongoDB', value: 'mongodb' },
-          { name: 'MySQL', value: 'mysql' },
-          { name: 'PostgreSQL', value: 'postgresql' },
-          { name: 'SQLite', value: 'sqlite' },
-        ],
+        message: 'Tipo de base de datos:',
+        choices: ['mongodb', 'mysql', 'postgres', 'sqlite'],
+        default: 'mongodb'
       },
       {
         type: 'checkbox',
         name: 'features',
-        message: 'Selecciona las características adicionales:',
+        message: 'Características adicionales:',
         choices: [
           { name: 'Autenticación JWT', value: 'auth' },
-          { name: 'Validación de datos', value: 'validation' },
-          { name: 'Documentación OpenAPI', value: 'swagger' },
-          { name: 'Compresión GZIP', value: 'compression' },
-          { name: 'Caché', value: 'cache' },
-          { name: 'Logging avanzado', value: 'logging' },
-        ],
-      },
+          { name: 'Documentación Swagger', value: 'swagger' },
+          { name: 'Sistema de caché', value: 'cache' },
+          { name: 'Logging avanzado', value: 'logging' }
+        ]
+      }
     ]);
 
-    // Configuración específica según la base de datos
-    const dbConfig = await this.promptForDatabaseConfig(answers.database.type);
-    
     return {
       name,
       ...answers,
-      database: {
-        type: answers.database.type,
-        config: dbConfig,
-      },
+      'database.type': answers['database.type']
     };
   }
 
-  private async promptForDatabaseConfig(dbType: string): Promise<DatabaseConfig> {
-    let dbConfig: DatabaseConfig;
+  private async promptForDatabaseConfig(type: string): Promise<DatabaseConfig> {
+    const config: DatabaseConfig = {
+      dependencies: {}
+    };
 
-    switch (dbType) {
+    switch (type) {
       case 'mongodb':
-        const mongoAnswers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'url',
-            message: 'URL de conexión MongoDB:',
-            default: 'mongodb://localhost:27017/rapidfast_db',
-          },
-        ]);
-        dbConfig = {
-          type: 'mongodb',
-          url: mongoAnswers.url,
-          host: 'localhost',
-          port: 27017,
-          database: 'rapidfast_db',
-          username: '',
-          password: '',
-        };
+        config.dependencies['mongodb'] = '^6.0.0';
         break;
-
       case 'mysql':
-      case 'postgresql':
-        const sqlAnswers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'host',
-            message: `Host de ${dbType}:`,
-            default: 'localhost',
-          },
-          {
-            type: 'input',
-            name: 'port',
-            message: `Puerto de ${dbType}:`,
-            default: dbType === 'mysql' ? '3306' : '5432',
-          },
-          {
-            type: 'input',
-            name: 'database',
-            message: 'Nombre de la base de datos:',
-            default: 'rapidfast_db',
-          },
-          {
-            type: 'input',
-            name: 'username',
-            message: 'Usuario:',
-            default: dbType === 'mysql' ? 'root' : 'postgres',
-          },
-          {
-            type: 'password',
-            name: 'password',
-            message: 'Contraseña:',
-            mask: '*',
-          },
-        ]);
-        dbConfig = {
-          type: dbType,
-          ...sqlAnswers,
-          port: parseInt(sqlAnswers.port),
-        };
+        config.dependencies['mysql2'] = '^3.0.0';
         break;
-
+      case 'postgres':
+        config.dependencies['pg'] = '^8.0.0';
+        break;
       case 'sqlite':
-        const sqliteAnswers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'database',
-            message: 'Nombre del archivo de base de datos:',
-            default: 'database.sqlite',
-          },
-        ]);
-        dbConfig = {
-          type: 'sqlite',
-          host: '',
-          port: 0,
-          username: '',
-          password: '',
-          database: sqliteAnswers.database,
-        };
+        config.dependencies['sqlite3'] = '^5.0.0';
         break;
-
-      default:
-        throw new Error(`Motor de base de datos no soportado: ${dbType}`);
     }
 
-    return dbConfig;
+    return config;
   }
 
   private async getGitUser(): Promise<string> {
@@ -235,44 +160,44 @@ export class NewCommand {
     }
   }
 
-  private async generatePackageJson(config: ProjectConfig): Promise<void> {
-    const packageJson = {
-      name: config.name,
-      version: '0.1.0',
-      description: config.description,
-      author: config.author,
-      private: true,
+  private async generatePackageJson(name: string, answers: ProjectAnswers): Promise<void> {
+    const packageJson: any = {
+      name,
+      version: '0.0.1',
+      description: answers.description,
+      author: answers.author,
       scripts: {
-        dev: 'ts-node-dev --respawn --transpile-only src/main.ts',
+        start: 'ts-node src/main.ts',
         build: 'tsc',
-        start: 'node dist/main.js',
-        test: 'jest',
-        lint: 'eslint "src/**/*.ts"',
-        format: 'prettier --write "src/**/*.ts"',
+        dev: 'nodemon src/main.ts'
       },
-      dependencies: {
-        '@angelitosystems/rapidfast': '^1.0.0',
-        'dotenv': '^16.3.1',
-        'reflect-metadata': '^0.1.13',
-        ...this.getDatabaseDependencies(config.database.type),
-        ...this.getFeatureDependencies(config.features),
-      },
-      devDependencies: {
-        '@types/node': '^20.8.2',
-        'typescript': '^5.2.2',
-        '@types/jest': '^29.5.5',
-        'jest': '^29.7.0',
-        'ts-jest': '^29.1.1',
-        'eslint': '^8.50.0',
-        '@typescript-eslint/parser': '^6.7.4',
-        '@typescript-eslint/eslint-plugin': '^6.7.4',
-        'prettier': '^3.0.3',
-        'ts-node-dev': '^2.0.0',
-        'ts-node': '^10.9.1',
-      },
+      dependencies: {}
     };
 
-    await fs.writeJSON(path.join(config.name, 'package.json'), packageJson, { spaces: 2 });
+    // Configurar dependencia de RapidFast
+    if (this.isLocal) {
+      // En modo local, usamos la ruta absoluta al paquete local
+      const localPackagePath = path.resolve(__dirname, '../../..');
+      this.logger.info(`Usando ruta absoluta para RapidFast: ${localPackagePath}`);
+      packageJson.dependencies['@angelitosystems/rapidfast'] = `file:${localPackagePath}`;
+    } else {
+      // En modo normal, usamos la versión de npm
+      packageJson.dependencies['@angelitosystems/rapidfast'] = '^1.0.0';
+    }
+
+    const dbConfig = await this.promptForDatabaseConfig(answers['database.type']);
+    
+    // Configurar base de datos
+    if (dbConfig) {
+      packageJson.dependencies = {
+        ...packageJson.dependencies,
+        typeorm: '^0.3.0',
+        ...dbConfig.dependencies
+      };
+    }
+
+    const projectPath = path.resolve(process.cwd(), name);
+    await fs.writeJson(path.join(projectPath, 'package.json'), packageJson, { spaces: 2 });
   }
 
   private getDatabaseDependencies(dbType: string): Record<string, string> {
@@ -342,114 +267,252 @@ export class NewCommand {
     return deps;
   }
 
-  private async generateEnvFile(config: ProjectConfig): Promise<void> {
-    const dbConfig = config.database.config;
-    let envContent = `# Configuración del servidor
-PORT=3000
-HOST=localhost
-NODE_ENV=development
-
-# Configuración de la base de datos
-DB_TYPE=${config.database.type}
-`;
-
-    switch (config.database.type) {
-      case 'mongodb':
-        envContent += `DB_URL=${dbConfig.url}\n`;
-        break;
+  private async generateEnvFile(config: any): Promise<void> {
+    let envContent = `# Variables de entorno para ${config.name}\n\n`;
+    envContent += `# Puerto del servidor\nPORT=3000\n\n`;
+    
+    // Configuración de base de datos
+    envContent += `# Configuración de base de datos\n`;
+    switch (config['database.type']) {
       case 'sqlite':
-        envContent += `DB_FILE=${dbConfig.database}\n`;
+        envContent += `DB_FILE=database.sqlite\n\n`;
         break;
       default:
-        envContent += `DB_HOST=${dbConfig.host}
-DB_PORT=${dbConfig.port}
-DB_NAME=${dbConfig.database}
-DB_USER=${dbConfig.username}
-DB_PASS=${dbConfig.password}\n`;
+        envContent += `DB_HOST=localhost\n`;
+        envContent += `DB_PORT=5432\n`;
+        envContent += `DB_NAME=database\n`;
+        envContent += `DB_USER=user\n`;
+        envContent += `DB_PASS=password\n\n`;
     }
 
-    if (config.features.includes('auth')) {
-      envContent += `
-# Configuración de JWT
-JWT_SECRET=cambiar_este_secreto
-JWT_EXPIRES_IN=1h\n`;
+    // Configuración de características
+    if (config.features?.includes('auth')) {
+      envContent += `# Configuración de JWT\n`;
+      envContent += `JWT_SECRET=cambiar_este_secreto\n`;
+      envContent += `JWT_EXPIRES_IN=1h\n\n`;
     }
 
-    if (config.features.includes('cache')) {
-      envContent += `
-# Configuración de caché
-CACHE_TTL=300
-CACHE_MAX=1000\n`;
+    if (config.features?.includes('cache')) {
+      envContent += `# Configuración de caché\n`;
+      envContent += `CACHE_TTL=300\n`;
+      envContent += `CACHE_MAX=1000\n\n`;
     }
 
-    envContent += `
-# Configuración de CORS
-CORS_ORIGIN=*\n`;
+    // Configuración de CORS
+    envContent += `# Configuración de CORS\n`;
+    envContent += `CORS_ORIGIN=*\n`;
 
     await fs.writeFile(path.join(config.name, '.env'), envContent);
     await fs.writeFile(path.join(config.name, '.env.example'), envContent);
   }
 
-  private async generateFeatureFiles(config: ProjectConfig): Promise<void> {
-    const srcPath = path.join(config.name, 'src');
-
-    if (config.features.includes('auth')) {
-      await this.generateAuthFiles(srcPath);
-    }
-
-    if (config.features.includes('swagger')) {
-      await this.generateSwaggerConfig(srcPath);
-    }
-
-    if (config.features.includes('logging')) {
-      await this.generateLoggingConfig(srcPath);
-    }
-  }
-
-  private async generateAuthFiles(srcPath: string): Promise<void> {
-    // TODO: Implementar generación de archivos de autenticación
-  }
-
-  private async generateSwaggerConfig(srcPath: string): Promise<void> {
-    // TODO: Implementar generación de configuración Swagger
-  }
-
-  private async generateLoggingConfig(srcPath: string): Promise<void> {
-    // TODO: Implementar generación de configuración de logging
-  }
-
-  private async copyTemplates(projectPath: string, name: string): Promise<void> {
-    const templatesPath = path.join(__dirname, '../../../templates/project');
-    
-    if (!await fs.pathExists(templatesPath)) {
-      throw new Error(`No se encontró el directorio de templates en: ${templatesPath}`);
-    }
-    
-    await fs.copy(templatesPath, projectPath);
-    
-    // Procesar archivos .template
-    const processTemplateFiles = async (dir: string) => {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
+  private async installDependencies(projectPath: string, packageManager: string): Promise<void> {
+    try {
+      const installCmd = packageManager === 'npm' ? 'install' : 'add';
       
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        
-        if (entry.isDirectory()) {
-          await processTemplateFiles(fullPath);
-        } else if (entry.name.endsWith('.template')) {
-          const newPath = fullPath.replace('.template', '');
-          let content = await fs.readFile(fullPath, 'utf8');
+      // Si estamos en desarrollo o se especificó --local
+      if (this.isLocal) {
+        try {
+          // Primero construimos el paquete local
+          this.spinner.text = 'Construyendo RapidFast local...';
+          await execAsync('pnpm build', { cwd: path.resolve(__dirname, '../../..') });
+          
+          // Obtener la ruta absoluta del paquete local
+          const localPackagePath = path.resolve(__dirname, '../../..');
+          this.logger.info(`Usando RapidFast local desde: ${localPackagePath}`);
+          
+          // Instalamos dependencias según el gestor de paquetes
+          this.spinner.text = 'Instalando dependencias...';
+          switch (packageManager) {
+            case 'pnpm':
+              // Para pnpm, primero creamos el enlace global
+              await execAsync('pnpm link --global', { cwd: localPackagePath });
+              // Luego instalamos todo y enlazamos en el proyecto
+              await execAsync(`cd "${projectPath}" && pnpm install && pnpm link --global @angelitosystems/rapidfast`);
+              break;
+              
+            case 'yarn':
+              // Para yarn, primero registramos el paquete
+              await execAsync('yarn link', { cwd: localPackagePath });
+              // Luego instalamos todo y enlazamos en el proyecto
+              await execAsync(`cd "${projectPath}" && yarn install && yarn link @angelitosystems/rapidfast`);
+              break;
+              
+            case 'npm':
+              // Para npm, primero registramos el paquete
+              await execAsync('npm link', { cwd: localPackagePath });
+              // Luego instalamos todo y enlazamos en el proyecto
+              await execAsync(`cd "${projectPath}" && npm install && npm link @angelitosystems/rapidfast`);
+              break;
+          }
+          
+          this.logger.info('RapidFast local enlazado correctamente');
+        } catch (error) {
+          this.logger.warn('Error al enlazar RapidFast local, usando versión de npm:', error);
+          // Si falla el enlace, instalamos normalmente
+          await execAsync(`cd "${projectPath}" && ${packageManager} ${installCmd}`);
+        }
+      } else {
+        // Instalación normal desde npm
+        await execAsync(`cd "${projectPath}" && ${packageManager} ${installCmd}`);
+      }
+    } catch (error) {
+      throw new Error(`Error al instalar dependencias: ${error}`);
+    }
+  }
+
+  private displayProjectInfo(config: ProjectConfig): void {
+    const messages = [
+      `\n${chalk.green('¡Proyecto creado exitosamente!')}`,
+      '\nDetalles del proyecto:',
+      `${chalk.cyan('Nombre:')} ${config.name}`,
+      `${chalk.cyan('Descripción:')} ${config.description}`,
+      `${chalk.cyan('Autor:')} ${config.author}`,
+      `${chalk.cyan('Gestor de paquetes:')} ${config.packageManager}`,
+      `${chalk.cyan('Base de datos:')} ${config['database.type']}`,
+      `${chalk.cyan('Características adicionales:')} ${config.features.join(', ') || 'ninguna'}`,
+    ];
+
+    // Mostrar información sobre el paquete enlazado cuando se usa --local
+    if (this.isLocal) {
+      const localPackagePath = path.resolve(__dirname, '../../..');
+      messages.push(
+        `\n${chalk.yellow('Modo desarrollo:')} Usando RapidFAST local`,
+        `${chalk.yellow('Ruta del paquete:')} ${localPackagePath}`
+      );
+    }
+
+    messages.push(
+      '\nPara comenzar:',
+      `\n${chalk.cyan('cd')} ${config.name}`,
+      `${chalk.cyan(`${config.packageManager} run dev`)}`,
+      '\nEstructura del proyecto:',
+      `${config.name}/`,
+      '  ├── src/',
+      '  │   ├── app/',
+      '  │   │   ├── app.module.ts',
+      '  │   │   ├── app.controller.ts',
+      '  │   │   └── app.service.ts',
+      '  │   └── main.ts',
+      '  ├── .env',
+      '  ├── .env.example',
+      '  ├── package.json',
+      '  └── tsconfig.json\n',
+      `\n${chalk.yellow('¡No olvides configurar las variables de entorno en el archivo .env!')}`,
+      `${chalk.yellow('Revisa la documentación para más información sobre las características seleccionadas.')}\n`,
+    );
+
+    console.log(messages.join('\n'));
+  }
+
+  private async copyTemplates(projectPath: string, projectName: string): Promise<void> {
+    try {
+      // Determinar la ruta de los templates
+      let templatesPath: string;
+      
+      if (this.isLocal) {
+        // En modo desarrollo, usar templates del proyecto actual
+        templatesPath = path.resolve(__dirname, '../../../templates/project');
+      } else {
+        // En modo producción, usar templates del paquete instalado
+        templatesPath = path.resolve(__dirname, '../../templates/project');
+      }
+      
+      this.logger.info(`Copiando templates desde: ${templatesPath}`);
+      
+      if (!fs.existsSync(templatesPath)) {
+        throw new Error(`No se encontró el directorio de templates: ${templatesPath}`);
+      }
+      
+      // Copiar todos los archivos de template al proyecto
+      await fs.copy(templatesPath, projectPath, {
+        filter: (src: string) => {
+          // Excluir archivos que no queremos copiar
+          return !src.includes('node_modules') && !src.includes('.git');
+        },
+        overwrite: true,
+        errorOnExist: false
+      });
+      
+      this.logger.info(`Templates copiados a: ${projectPath}`);
+      
+      // Procesar y renombrar archivos
+      await this.processTemplateFiles(projectPath, projectName);
+      
+    } catch (error) {
+      throw new Error(`Error al copiar templates: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  private async processTemplateFiles(projectPath: string, projectName: string): Promise<void> {
+    try {
+      // Buscar todos los archivos en el directorio del proyecto, incluyendo subdirectorios
+      const files = await this.findAllFiles(projectPath);
+      this.logger.info(`Procesando ${files.length} archivos de template`);
+      
+      for (const file of files) {
+        try {
+          const filePath = path.join(projectPath, file);
+          
+          // Leer el contenido del archivo
+          const content = await fs.readFile(filePath, 'utf8');
           
           // Reemplazar variables en el contenido
-          content = content.replace(/\{\{name\}\}/g, name);
+          const processedContent = content
+            .replace(/{{name}}/g, projectName)
+            .replace(/{{projectName}}/g, projectName)
+            .replace(/{{projectDescription}}/g, 'Proyecto creado con RapidFAST');
           
-          await fs.writeFile(newPath, content);
-          await fs.remove(fullPath);
+          // Guardar el archivo con el contenido procesado
+          await fs.writeFile(filePath, processedContent);
+          
+          // Renombrar archivos .template
+          if (file.endsWith('.template')) {
+            const newPath = filePath.replace('.template', '');
+            this.logger.info(`Renombrando: ${filePath} → ${newPath}`);
+            
+            // Asegurarse de que el archivo destino no exista para evitar errores
+            if (await fs.pathExists(newPath)) {
+              await fs.remove(newPath);
+            }
+            
+            // Primero guarda el contenido en el nuevo archivo, luego elimina el original
+            await fs.writeFile(newPath, processedContent);
+            await fs.remove(filePath);
+            
+            this.logger.info(`Archivo renombrado exitosamente: ${path.basename(newPath)}`);
+          }
+        } catch (fileError) {
+          this.logger.warn(`Error procesando archivo ${file}: ${fileError}`);
+          // Continuar con el siguiente archivo
         }
       }
-    };
+      
+      this.logger.info('Procesamiento de templates completado');
+    } catch (error) {
+      throw new Error(`Error al procesar archivos de template: ${error}`);
+    }
+  }
+  
+  private async findAllFiles(dir: string): Promise<string[]> {
+    let results: string[] = [];
+    const items = await fs.readdir(dir);
     
-    await processTemplateFiles(projectPath);
+    for (const item of items) {
+      const itemPath = path.join(dir, item);
+      const stat = await fs.stat(itemPath);
+      
+      const relativePath = path.relative(dir, itemPath);
+      
+      if (stat.isDirectory()) {
+        const subResults = await this.findAllFiles(itemPath);
+        results = results.concat(subResults.map(p => path.join(relativePath, p)));
+      } else {
+        results.push(relativePath);
+      }
+    }
+    
+    return results;
   }
 
   public async execute(name: string, options: NewCommandOptions): Promise<void> {
@@ -470,78 +533,54 @@ CORS_ORIGIN=*\n`;
           this.logger.info('Operación cancelada por el usuario');
           return;
         }
+
+        // Si existe y se aprobó sobrescribir, solo eliminamos los archivos dentro del directorio
+        try {
+          this.spinner.start('Limpiando archivos existentes...');
+          // Eliminamos solo los archivos dentro del directorio, no el directorio en sí
+          const files = await fs.readdir(projectPath);
+          for (const file of files) {
+            const filePath = path.join(projectPath, file);
+            await fs.remove(filePath).catch(err => {
+              this.logger.warn(`No se pudo eliminar ${filePath}: ${err.message}`);
+            });
+          }
+          this.spinner.succeed('Archivos existentes eliminados exitosamente');
+        } catch (error) {
+          this.spinner.fail('Error al limpiar los archivos existentes');
+          this.logger.warn('Continuando con la creación del proyecto...');
+          // Continuamos con la creación del proyecto incluso si hay errores al limpiar
+        }
       }
 
       // Obtener configuración del proyecto
-      const config = await this.promptForProjectDetails(name);
+      const answers = await this.promptForProjectDetails(name);
       
       this.spinner.start('Creando proyecto RapidFAST...');
       
       // Crear directorio del proyecto
       await fs.ensureDir(projectPath);
       
-      // Copiar plantillas
+      // Copiar y procesar templates
       await this.copyTemplates(projectPath, name);
       
       // Generar archivos de configuración
-      await this.generatePackageJson(config);
-      await this.generateEnvFile(config);
-      await this.generateFeatureFiles(config);
+      await this.generatePackageJson(name, answers);
+      await this.generateEnvFile(answers);
       
       // Instalar dependencias
       if (!options.skipInstall) {
         this.spinner.text = 'Instalando dependencias...';
-        await this.installDependencies(projectPath, config.packageManager);
+        await this.installDependencies(projectPath, answers.packageManager);
       }
 
       this.spinner.succeed('Proyecto creado exitosamente');
       
-      this.displayProjectInfo(config);
+      this.displayProjectInfo({ ...answers, name });
     } catch (error) {
       this.spinner.fail('Error al crear el proyecto');
       this.logger.error('Error:', error);
       process.exit(1);
     }
   }
-
-  private async installDependencies(projectPath: string, packageManager: string): Promise<void> {
-    try {
-      const installCmd = packageManager === 'npm' ? 'install' : 'add';
-      await execAsync(`cd "${projectPath}" && ${packageManager} ${installCmd}`);
-    } catch (error) {
-      throw new Error(`Error al instalar dependencias: ${error}`);
-    }
-  }
-
-  private displayProjectInfo(config: ProjectConfig): void {
-    const messages = [
-      `\n${chalk.green('¡Proyecto creado exitosamente!')}`,
-      '\nDetalles del proyecto:',
-      `${chalk.cyan('Nombre:')} ${config.name}`,
-      `${chalk.cyan('Descripción:')} ${config.description}`,
-      `${chalk.cyan('Autor:')} ${config.author}`,
-      `${chalk.cyan('Gestor de paquetes:')} ${config.packageManager}`,
-      `${chalk.cyan('Base de datos:')} ${config.database.type}`,
-      `${chalk.cyan('Características adicionales:')} ${config.features.join(', ') || 'ninguna'}`,
-      '\nPara comenzar:',
-      `\n${chalk.cyan('cd')} ${config.name}`,
-      `${chalk.cyan(`${config.packageManager} run dev`)}`,
-      '\nEstructura del proyecto:',
-      `${config.name}/`,
-      '  ├── src/',
-      '  │   ├── app/',
-      '  │   │   ├── app.module.ts',
-      '  │   │   ├── app.controller.ts',
-      '  │   │   └── app.service.ts',
-      '  │   └── main.ts',
-      '  ├── .env',
-      '  ├── .env.example',
-      '  ├── package.json',
-      '  └── tsconfig.json\n',
-      `\n${chalk.yellow('¡No olvides configurar las variables de entorno en el archivo .env!')}`,
-      `${chalk.yellow('Revisa la documentación para más información sobre las características seleccionadas.')}\n`,
-    ].join('\n');
-
-    console.log(messages);
-  }
-} 
+}

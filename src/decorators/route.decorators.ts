@@ -2,41 +2,45 @@ import 'reflect-metadata';
 import { RouteDefinition, RouteHandler } from '../interfaces/controller.interface';
 import { paramExtractorMiddleware } from '../core/param-extractor.middleware';
 import { Request, Response, NextFunction } from '../interfaces/http.interface';
+import { Logger } from '../utils/logger';
 
-function createRouteDecorator(method: string) {
-  return function (path: string = '') {
-    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+const logger = new Logger();
+
+type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
+
+function createRouteDecorator(method: HttpMethod) {
+  return function (path: string = '/'): MethodDecorator {
+    return function (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
       if (!Reflect.hasMetadata('routes', target.constructor)) {
         Reflect.defineMetadata('routes', [], target.constructor);
       }
 
-      // Guardar el handler original
-      const originalHandler = descriptor.value;
-
-      // Crear un nuevo handler que utilice los parámetros extraídos
-      descriptor.value = async function(req: any, res: any, next: any) {
-        // Si hay parámetros extraídos, utilizarlos
-        if (req._params) {
-          return originalHandler.apply(this, req._params);
-        }
-        
-        // Si no hay parámetros extraídos, utilizar los parámetros estándar
-        return originalHandler.call(this, req, res, next);
-      };
-
       const routes = Reflect.getMetadata('routes', target.constructor) as RouteDefinition[];
-      
-      // Crear un middleware con el tipo correcto
-      const paramMiddleware = function(req: any, res: any, next: any) {
-        return paramExtractorMiddleware(target.constructor, propertyKey)(req, res, next);
+
+      // Envolver el handler original para manejar parámetros y errores
+      const originalHandler = descriptor.value;
+      descriptor.value = async function (req: Request, res: Response, next: NextFunction) {
+        try {
+          const result = Array.isArray(req.params)
+            ? await originalHandler.apply(this, req.params)
+            : await originalHandler.call(this, req, res, next);
+
+          if (result !== undefined && !res.writableEnded) {
+            res.json(result);
+          }
+        } catch (error) {
+          logger.error(`Error en ruta ${method.toUpperCase()} ${path}:`, error);
+          next(error);
+        }
       };
-      
+
+      // Registrar la ruta
       routes.push({
-        method,
         path,
-        methodName: propertyKey,
+        method,
+        methodName: propertyKey as string,
         handler: descriptor.value,
-        middleware: [paramMiddleware],
+        middleware: Reflect.getMetadata('middleware', target, propertyKey as string) || []
       });
 
       Reflect.defineMetadata('routes', routes, target.constructor);
