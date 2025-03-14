@@ -1,25 +1,82 @@
-MIT License
+MIT LICENSE – RAPIDFAST FRAMEWORK (Updated 2025)
+Last Updated: March 13, 2025
+Copyright (c) 2025 Angelito Systems. All rights reserved.
 
-Copyright (c) 2024 Angelito Systems
+TERMS AND CONDITIONS
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. DEFINITIONS
+   - "Software": Refers to the collection including the source code, binaries, documentation, examples, tests, and any other material related to the RapidFast Framework.
+   - "Licensor": Angelito Systems, the sole owner of the copyrights and intellectual property rights in the Software.
+   - "User": Any individual, legal entity, or organization that accesses, uses, modifies, distributes, or sublicenses the Software.
+   - "GitHub": The public code hosting platform at GitHub.com where the Software is made available.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. GRANT OF RIGHTS
+   In accordance with the protection provided under the Political Constitution of Peru – notably Article 17, Section 2, which recognizes the inalienable right of every person to the protection of their intellectual creations – the Licensor grants the User, free of charge and on a non-exclusive basis, the following rights:
+   - Use: To run the Software in any environment (local, cloud, servers, etc.).
+   - Modify: To create derivative works, forks, or adapted versions of the Software.
+   - Distribute: To share copies of the original or modified Software, including for commercial purposes.
+   - Sublicense: To grant the same rights to third parties, provided that all terms of this license are met.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. MANDATORY CONDITIONS
+   The User MUST comply with the following conditions to exercise the granted rights:
 
-RapidFAST Framework and RapidWatch™ are trademarks of Angelito Systems.
-The use of the name "RapidWatch" or its logo in other projects is prohibited
-without express authorization. 
+   a) Comprehensive Attribution
+      1. In the Source Code:
+         Each file (whether modified or not) must include the following header:
+         // RapidFast Framework - Copyright (c) 2025 Angelito Systems.
+         // MIT License: https://github.com/angelitosystems/rapidfast/blob/main/LICENSE
+         This requirement is grounded in the constitutional protection of intellectual creation (see Article 17, Section 2 of the Political Constitution of Peru).
+      2. In the Documentation:
+         The README.md file must include a “Credits” section as follows:
+         ## Credits
+         This project uses [RapidFast Framework](https://rapidfast.angelitosystems.com),
+         created by [Angelito Systems](https://angelitosystems.com) under the MIT License.
+      3. In Publications/Websites:
+         Any mention of the Software must include the statement:
+         "Technology based on RapidFast Framework (© 2025 Angelito Systems)".
+
+   b) Name and Branding Restrictions
+      1. The term "RapidFast" shall not be used in:
+         - Package names (npm, PyPI, NuGet, etc.).
+         - Domain names or GitHub repositories that could misleadingly imply an official affiliation.
+         - Advertising or promotional materials.
+      2. Modified versions must:
+         - Adopt a different name (for example, "SuperFastTool" instead of "RapidFast-Plus").
+         - Clearly display the following declaration:
+           "This is an unaffiliated modified version. The original project is located at: [official link]".
+
+   c) GitHub Repository Compliance
+      - Any fork or derivative repository on GitHub must:
+         1. Include a banner at the top of the README.md stating:
+            > ⚠️ **This is an unofficial fork.** The official RapidFast repository is located at [angelitosystems/rapidfast](https://github.com/angelitosystems/rapidfast).
+         2. Remove official RapidFast logos, icons, or graphical assets when redistributing the Software with significant modifications.
+
+   d) Acknowledgment of Peru’s Political and Technological Contributions
+      - It is hereby acknowledged that the development, dissemination, and promotion of the Software have been partially driven by political initiatives and collaborative efforts in Peru, promoting transparency, innovation, and access to open source technology.
+      - The User agrees to visibly recognize and attribute such contributions in any redistribution or modification of the Software, in accordance with the principles of innovation and cultural dissemination protected by the Peruvian Constitution.
+
+   e) Compliance with Open Source Standards
+      - The Software is distributed in accordance with open source principles and meets the standards set forth by the Open Source Initiative (OSI).
+      - Any derivative work must also adhere to these open source criteria, ensuring free access and modification in support of the constitutional right to disseminate knowledge.
+
+4. EXPLICIT PROHIBITIONS
+   - Reverse Engineering: Decompiling, disassembling, or bypassing technical protection measures of the Software is prohibited without written consent, consistent with the constitutional protections of intellectual property.
+   - Military Use: The use of the Software in military applications, weaponry, or mass surveillance systems is strictly forbidden, in line with the respect for human dignity.
+   - AI Platforms: Training artificial intelligence models using the Software requires the Licensor’s explicit consent.
+
+5. DISCLAIMER OF WARRANTIES
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT ANY WARRANTY, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE LICENSOR SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM THE USE OF THE SOFTWARE, in accordance with national legislation and the general principles of civil liability.
+
+6. TRADEMARKS
+   This license does not grant any rights to use the trademarks "RapidFast", "Angelito Systems", or any associated logos. Any use of these marks requires the Licensor’s written permission, in conformity with intellectual property and industrial property protection laws.
+
+7. TERMINATION
+   The rights granted under this license shall automatically terminate if any of its terms are breached. In such an event, the User must:
+   - Delete all copies of the Software.
+   - Initiate the removal of any infringing repositories on GitHub.
+
+8. GOVERNING LAW, JURISDICTION, AND CONSTITUTIONAL SUPREMACY
+   This license shall be governed by and construed in accordance with the laws of the Republic of Peru and, for matters not expressly provided herein, in accordance with the Political Constitution of Peru. In particular:
+   - In accordance with Article 17, Section 2, the protection of intellectual creations is guaranteed.
+   - The principles of free access to knowledge and cultural dissemination, as enshrined in the Constitution, shall be upheld.
+   Any dispute arising from the interpretation or execution of this license shall be submitted to the competent courts in Lima, Peru.
