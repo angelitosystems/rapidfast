@@ -1,0 +1,36 @@
+import { Controller, Get, Post, Put, Delete, Body, Param } from '@angelitosystems/rapidfast';
+import { UserService } from './user.service';
+import { User } from './entities/user.entity';
+
+@Controller('users')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Get()
+  async findAll(): Promise<User[]> {
+    return this.userService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<User | null> {
+    return this.userService.findById(parseInt(id));
+  }
+
+  @Post()
+  async create(@Body() userData: Partial<User>): Promise<User> {
+    return this.userService.create(userData);
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() userData: Partial<User>
+  ): Promise<User | null> {
+    return this.userService.update(parseInt(id), userData);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string): Promise<boolean> {
+    return this.userService.delete(parseInt(id));
+  }
+} 

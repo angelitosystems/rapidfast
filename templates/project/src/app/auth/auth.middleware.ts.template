@@ -1,0 +1,33 @@
+import { Injectable, Request, Response, NextFunction } from '@angelitosystems/rapidfast';
+import { AuthService } from './auth.service';
+
+@Injectable()
+export class AuthMiddleware {
+  constructor(private readonly authService: AuthService) {}
+
+  async use(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Obtener el token del header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+    
+    const token = authHeader.substring(7); // Eliminar 'Bearer ' del header
+    
+    try {
+      // Validar el token y obtener el usuario
+      const user = await this.authService.getUserFromToken(token);
+      
+      if (user) {
+        // Añadir el usuario al request para que esté disponible en los controladores
+        (req as any).user = user;
+      }
+    } catch (error) {
+      // Si hay un error, simplemente continuamos sin usuario
+      console.error('Error al validar el token:', error);
+    }
+    
+    next();
+  }
+} 

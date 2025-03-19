@@ -1,0 +1,22 @@
+import { Module } from '@angelitosystems/rapidfast';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TodoModule } from './todo/todo.module';
+import { UserModule } from './users/user.module';
+import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from '../database/database.module';
+
+@Module({
+  imports: [
+    // Módulos de infraestructura
+    DatabaseModule,
+    
+    // Módulos de funcionalidad
+    TodoModule,
+    UserModule,
+    AuthModule
+  ],
+  controllers: [AppController],
+  providers: [AppService]
+})
+export class AppModule {}

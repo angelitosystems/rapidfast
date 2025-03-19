@@ -1,0 +1,25 @@
+import { Factory, Seeder } from '@angelitosystems/rapidfast';
+import { Connection } from '@angelitosystems/rapidfast';
+import { User } from '../../app/users/entities/user.entity';
+
+export default class UserSeeder implements Seeder {
+  public async run(factory: Factory, connection: Connection): Promise<void> {
+    const userRepository = connection.getRepository(User);
+
+    const defaultUser = userRepository.create({
+      username: 'admin',
+      email: 'admin@example.com',
+      password: await factory.hash('password'),
+      isActive: true,
+      settings: {
+        theme: 'light',
+        notifications: true
+      }
+    });
+
+    await userRepository.save(defaultUser);
+
+    // Create additional test users using factory
+    await factory(User)().createMany(5);
+  }
+}

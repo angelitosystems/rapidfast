@@ -1,0 +1,21 @@
+import { IsEmail, IsString, MinLength, Transform, IsOptional } from '@angelitosystems/rapidfast';
+
+export class RegisterDto {
+  @IsString()
+  @MinLength(2)
+  @Transform(({ value }) => value?.trim())
+  name: string;
+
+  @IsEmail()
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  role?: string;
+} 

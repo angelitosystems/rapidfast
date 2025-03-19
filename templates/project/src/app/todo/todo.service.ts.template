@@ -1,0 +1,105 @@
+import { Injectable } from '@angelitosystems/rapidfast';
+import { v4 as uuid } from 'uuid';
+
+// Definición del modelo Todo
+export interface Todo {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+@Injectable()
+export class TodoService {
+  // Almacén de datos en memoria (simulación)
+  private todos: Todo[] = [];
+
+  constructor() {
+    // Añadir algunos datos de ejemplo
+    this.todos.push(
+      {
+        id: '1',
+        title: 'Aprender RapidFAST',
+        description: 'Estudiar la documentación y crear una API',
+        completed: false,
+        createdAt: new Date()
+      },
+      {
+        id: '2',
+        title: 'Construir un proyecto',
+        description: 'Implementar un proyecto usando RapidFAST',
+        completed: false,
+        createdAt: new Date()
+      }
+    );
+  }
+
+  /**
+   * Obtiene todas las tareas
+   */
+  public async getAllTodos(): Promise<Todo[]> {
+    return [...this.todos];
+  }
+
+  /**
+   * Obtiene una tarea por su ID
+   * @param id ID de la tarea
+   */
+  public async getTodoById(id: string): Promise<Todo | undefined> {
+    return this.todos.find(todo => todo.id === id);
+  }
+
+  /**
+   * Crea una nueva tarea
+   * @param todoData Datos de la tarea
+   */
+  public async createTodo(todoData: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>): Promise<Todo> {
+    const newTodo: Todo = {
+      id: uuid(),
+      ...todoData,
+      createdAt: new Date(),
+      completed: todoData.completed ?? false,
+    };
+
+    this.todos.push(newTodo);
+    return newTodo;
+  }
+
+  /**
+   * Actualiza una tarea existente
+   * @param id ID de la tarea
+   * @param updates Datos a actualizar
+   */
+  public async updateTodo(id: string, updates: Partial<Todo>): Promise<Todo | undefined> {
+    const todoIndex = this.todos.findIndex(todo => todo.id === id);
+    if (todoIndex === -1) {
+      return undefined;
+    }
+
+    // Actualizar tarea
+    const updatedTodo: Todo = {
+      ...this.todos[todoIndex],
+      ...updates,
+      updatedAt: new Date()
+    };
+
+    this.todos[todoIndex] = updatedTodo;
+    return updatedTodo;
+  }
+
+  /**
+   * Elimina una tarea
+   * @param id ID de la tarea
+   */
+  public async deleteTodo(id: string): Promise<boolean> {
+    const todoIndex = this.todos.findIndex(todo => todo.id === id);
+    if (todoIndex === -1) {
+      return false;
+    }
+
+    this.todos.splice(todoIndex, 1);
+    return true;
+  }
+}

@@ -1,0 +1,15 @@
+import { Factory, faker } from '@angelitosystems/rapidfast';
+import { User } from '../../app/users/entities/user.entity';
+
+export default Factory(User)(() => ({
+  username: faker.internet.userName(),
+  email: faker.internet.email(),
+  password: faker.internet.password(),
+  isActive: faker.datatype.boolean(),
+  lastLoginAt: faker.date.past(),
+  settings: {
+    theme: faker.helpers.arrayElement(['light', 'dark']),
+    notifications: faker.datatype.boolean(),
+    language: faker.helpers.arrayElement(['en', 'es'])
+  }
+}));

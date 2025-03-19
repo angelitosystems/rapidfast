@@ -1,0 +1,91 @@
+import { Controller, Get, Post, Body, Req, HttpException, HttpStatus, BadRequestException, UnauthorizedException } from '@angelitosystems/rapidfast';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { User } from '../users/entities/user.entity';
+import { validate } from 'class-validator';
+
+interface RequestWithUser {
+  user: User;
+  headers: {
+    authorization?: string;
+  };
+}
+
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtAuthGuard: JwtAuthGuard
+  ) {}
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    // Validar DTO
+    const errors = await validate(loginDto);
+    if (errors.length > 0) {
+      throw new BadRequestException('Error de validación', 
+        errors.map(error => ({
+          property: error.property,
+          constraints: error.constraints
+        }))
+      );
+    }
+
+    const { email, password } = loginDto;
+    const user = await this.authService.validateUser(email, password);
+    
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+    
+    return this.authService.login(user);
+  }
+
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    // Validar DTO
+    const errors = await validate(registerDto);
+    if (errors.length > 0) {
+      throw new BadRequestException('Error de validación', 
+        errors.map(error => ({
+          property: error.property,
+          constraints: error.constraints
+        }))
+      );
+    }
+
+    try {
+      const user = await this.authService.register(registerDto);
+      const { password, ...result } = user;
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Error al registrar el usuario');
+    }
+  }
+
+  @Get('profile')
+  async getProfile(@Req() req: RequestWithUser) {
+    const authHeader = req.headers.authorization;
+      
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+    
+    const token = authHeader.substring(7); // Eliminar 'Bearer ' del header
+    const user = await this.authService.getUserFromToken(token);
+    
+    if (!user) {
+      throw new UnauthorizedException('Token inválido o expirado');
+    }
+    
+    return user;
+  }
+
+  @Post('validate-token')
+  async validateToken(@Body() body: { token: string }) {
+    const isValid = await this.authService.validateToken(body.token);
+    return { valid: !!isValid };
+  }
+} 

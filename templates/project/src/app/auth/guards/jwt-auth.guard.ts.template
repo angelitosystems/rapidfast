@@ -1,0 +1,46 @@
+import { Injectable, UnauthorizedException } from '@angelitosystems/rapidfast';
+import { AuthService } from '../auth.service';
+
+interface RequestWithUser {
+  user: any;
+  headers: {
+    authorization?: string;
+  };
+}
+
+@Injectable()
+export class JwtAuthGuard {
+  constructor(private readonly authService: AuthService) {}
+
+  async canActivate(req: RequestWithUser): Promise<boolean> {
+    try {
+      // Extraer el token del header Authorization
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw new UnauthorizedException('Token no proporcionado');
+      }
+      
+      const token = authHeader.substring(7); // Eliminar 'Bearer ' del header
+      const payload = await this.authService.validateToken(token);
+      
+      if (!payload) {
+        throw new UnauthorizedException('Token inválido o expirado');
+      }
+      
+      // Obtener el usuario asociado al token
+      const user = await this.authService.getUserFromToken(token);
+      
+      if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+      }
+      
+      // Añadir el usuario a la request
+      req.user = user;
+      
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException(error.message || 'Error de autenticación');
+    }
+  }
+} 

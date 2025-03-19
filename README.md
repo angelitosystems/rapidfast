@@ -1,0 +1,628 @@
+# RapidFAST Framework
+
+![RapidFAST Logo](https://via.placeholder.com/700x150?text=RapidFAST+Framework)
+
+## ⚡ Framework para desarrollo rápido de APIs con TypeScript y Express
+
+RapidFAST es un framework de Node.js inspirado en NestJS que permite crear aplicaciones backend con una estructura clara y limpia, utilizando decoradores, inyección de dependencias y una arquitectura modular.
+
+[![NPM Version](https://img.shields.io/npm/v/@angelitosystems/rapidfast.svg)](https://www.npmjs.com/package/@angelitosystems/rapidfast)
+[![Beta Version](https://img.shields.io/npm/v/@angelitosystems/rapidfast/beta.svg)](https://www.npmjs.com/package/@angelitosystems/rapidfast)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## 🚀 Características
+
+- **Arquitectura Modular**: Estructura tu código en módulos reutilizables
+- **Decoradores TypeScript**: Define rutas, controladores y servicios con sintaxis declarativa
+- **Inyección de Dependencias**: Sistema avanzado de DI para una mejor organización del código
+- **Middleware**: Soporte para middleware global y por ruta
+- **CLI Integrado**: Herramientas para crear proyectos y generar código rápidamente
+- **Compatible con Express**: Construido sobre Express para máxima compatibilidad
+- **RapidWatch™**: Sistema propietario integrado de recarga automática sin dependencias externas
+- **Configurable**: Configuración flexible para diferentes entornos
+- **Swagger Integrado**: Documentación automática de API con interfaz visual
+
+## 📋 Requisitos
+
+- Node.js 14.0 o superior
+- TypeScript 4.0 o superior
+- npm, yarn o pnpm
+
+## 🔧 Instalación
+
+### Instalación global (recomendada para usar el CLI)
+
+```bash
+npm install -g @angelitosystems/rapidfast
+```
+
+### Instalación en un proyecto
+
+```bash
+npm install @angelitosystems/rapidfast
+```
+
+### Instalación de la versión beta
+
+```bash
+npm install @angelitosystems/rapidfast@1.0.6-beta.13 -g
+```
+
+## 🏗️ Creación de un nuevo proyecto
+
+```bash
+# Usando la herramienta CLI instalada globalmente
+rapidfast new mi-proyecto
+
+# Especificar un directorio diferente para crear el proyecto
+rapidfast new mi-proyecto --directory C:/mis-proyectos
+
+# Usar un gestor de paquetes específico
+rapidfast new mi-proyecto --package-manager pnpm
+
+# Omitir la instalación de dependencias
+rapidfast new mi-proyecto --skip-install
+```
+
+### Opciones para el comando `new`
+
+| Opción                            | Descripción                                                |
+| --------------------------------- | ---------------------------------------------------------- |
+| `-d, --directory <dir>`           | Directorio donde crear el proyecto                         |
+| `-s, --skip-install`              | Omitir instalación de dependencias                         |
+| `-p, --package-manager <manager>` | Gestor de paquetes a utilizar (npm, yarn, pnpm)            |
+
+**Nota importante sobre nombres y rutas:**
+- El nombre del proyecto no debe contener barras (`/` o `\`) ni caracteres especiales (`*?:"<>|`)
+- Para proyectos en rutas que contienen espacios, usa la opción `--directory` para evitar problemas
+- Ejemplos:
+  - `rapidfast new mi-api --directory "C:/Mi Carpeta/Proyectos"` ✅
+  - `rapidfast new "mi api"` ❌ (no usar espacios en el nombre)
+  - `rapidfast new mi/api` ❌ (no usar barras en el nombre)
+
+## 🚀 Iniciar el servidor de desarrollo
+
+Navega a tu proyecto y ejecuta:
+
+```bash
+# Usando el CLI con RapidWatch™ (recarga automática propietaria)
+rapidfast serve
+
+# Con opciones personalizadas
+rapidfast serve --port 4000 --host 0.0.0.0
+
+# Omitir la recarga automática
+rapidfast serve --no-watch
+
+# O usando scripts del package.json
+npm run serve
+```
+
+## 📁 Estructura de un proyecto
+
+```
+mi-proyecto/
+├── src/
+│   ├── app/
+│   │   ├── app.module.ts     # Módulo principal
+│   │   ├── app.controller.ts # Controlador principal
+│   │   └── test/             # Módulo de prueba
+│   │       ├── test.module.ts
+│   │       └── test.controller.ts
+│   ├── main.ts              # Punto de entrada de la aplicación
+│   └── config/              # Configuraciones
+├── .env                     # Variables de entorno
+├── .env.example             # Ejemplo de variables de entorno
+├── package.json
+└── tsconfig.json
+```
+
+## 📝 Uso básico
+
+### Crear un controlador
+
+```typescript
+// usuario.controller.ts
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Req,
+  Res,
+} from "@angelitosystems/rapidfast";
+import { Request, Response } from "express";
+
+@Controller("/usuarios")
+export class UsuarioController {
+  @Get()
+  async getAll(@Res() res: Response) {
+    return res.json({ message: "Lista de usuarios" });
+  }
+
+  @Get(":id")
+  async getOne(@Req() req: Request, @Res() res: Response) {
+    return res.json({ message: `Usuario con ID: ${req.params.id}` });
+  }
+
+  @Post()
+  async create(@Req() req: Request, @Res() res: Response) {
+    return res.status(201).json({ message: "Usuario creado" });
+  }
+}
+```
+
+### Crear un servicio
+
+```typescript
+// usuario.service.ts
+import { Injectable } from "@angelitosystems/rapidfast";
+
+@Injectable()
+export class UsuarioService {
+  private usuarios = [];
+
+  findAll() {
+    return this.usuarios;
+  }
+
+  findOne(id: string) {
+    return this.usuarios.find((user) => user.id === id);
+  }
+
+  create(data: any) {
+    const newUser = { id: Date.now().toString(), ...data };
+    this.usuarios.push(newUser);
+    return newUser;
+  }
+}
+```
+
+### Crear un módulo
+
+```typescript
+// usuario.module.ts
+import { Module } from "@angelitosystems/rapidfast";
+import { UsuarioController } from "./usuario.controller";
+import { UsuarioService } from "./usuario.service";
+
+@Module({
+  controllers: [UsuarioController],
+  providers: [UsuarioService],
+})
+export class UsuarioModule {}
+```
+
+## 🛠️ CLI de RapidFAST
+
+RapidFAST incluye una CLI potente para facilitar la creación de proyectos y recursos:
+
+### Comandos disponibles
+
+| Comando                              | Descripción                      |
+| ------------------------------------ | -------------------------------- |
+| `rapidfast new <nombre>`             | Crea un nuevo proyecto           |
+| `rapidfast serve`                    | Inicia el servidor de desarrollo |
+| `rapidfast generate <tipo> <nombre>` | Genera un nuevo recurso          |
+
+### Opciones para el comando `serve`
+
+| Opción                | Descripción                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `-p, --port <puerto>` | Puerto donde se ejecutará el servidor (por defecto: 3000)            |
+| `-h, --host <host>`   | Dirección en la que se escucharán conexiones (por defecto: localhost)|
+| `-w, --watch`         | Activa RapidWatch para recarga automática (por defecto: true)        |
+| `--no-watch`          | Desactiva RapidWatch y la recarga automática                         |
+| `-d, --dev`           | Modo desarrollo (por defecto: true)                                  |
+| `--prod`              | Modo producción                                                      |
+
+### Generación de recursos
+
+```bash
+# Generar un controlador
+rapidfast generate controller usuario
+
+# Generar un servicio
+rapidfast generate service usuario
+
+# Generar un middleware
+rapidfast generate middleware auth
+
+# Generar un módulo
+rapidfast generate module usuario
+
+# Generar un recurso completo (controlador, servicio y módulo)
+rapidfast generate resource usuario
+```
+
+También puedes usar alias más cortos:
+
+```bash
+rapidfast g controller usuario
+rapidfast g:controller usuario
+```
+
+## ⚡ RapidWatch™: Tecnología propietaria de recarga automática
+
+RapidFAST incluye **RapidWatch™**, una tecnología propietaria exclusiva para recarga automática, desarrollada específicamente para este framework y sin dependencia de herramientas externas como nodemon. Esta tecnología es propiedad registrada de Angelito Systems y está disponible exclusivamente como parte del framework RapidFAST.
+
+### Características exclusivas de RapidWatch™:
+
+- **Tecnología propietaria**: Desarrollada exclusivamente para RapidFAST, no disponible en otros frameworks
+- **Rendimiento superior**: Optimizado específicamente para aplicaciones RapidFAST con hasta un 30% menos de consumo de memoria
+- **Detección inteligente**: Algoritmo avanzado para detectar cambios relevantes en tiempo real
+- **Compatibilidad amplia**: Soporte garantizado para sistemas Windows, macOS y Linux
+- **Manejo de rutas complejas**: Solución robusta para directorios con espacios y caracteres especiales
+- **Arranque rápido**: Inicio optimizado sin dependencias adicionales
+- **Integración nativa**: Funciona perfectamente con la arquitectura de módulos de RapidFAST
+- **Interfaz visual moderna**: Logo y mensajes informativos con gradientes de color
+- **Notificaciones en tiempo real**: Información detallada sobre cambios detectados
+
+### Funcionamiento interno de RapidWatch™
+
+RapidWatch™ utiliza una arquitectura de 3 capas para ofrecer la mejor experiencia de desarrollo:
+
+1. **Capa de monitoreo**: Vigila constantemente el sistema de archivos buscando cambios en archivos `.ts`, `.js`, y `.json`
+2. **Capa de análisis**: Determina qué cambios son relevantes y requieren reinicio
+3. **Capa de gestión de procesos**: Detiene y reinicia la aplicación de forma óptima
+
+### Uso de RapidWatch™
+
+RapidWatch™ se activa automáticamente al usar `rapidfast serve` y puede configurarse con las siguientes opciones:
+
+| Opción          | Descripción                                      |
+| --------------- | ------------------------------------------------ |
+| `--watch`       | Activar RapidWatch™ (activado por defecto)       |
+| `--no-watch`    | Desactivar RapidWatch™                           |
+
+```bash
+# Activar RapidWatch™ (comportamiento predeterminado)
+rapidfast serve
+
+# Desactivar RapidWatch™
+rapidfast serve --no-watch
+
+# Configurar puerto y host con RapidWatch™
+rapidfast serve --port 5000 --host 0.0.0.0
+```
+
+### Diagrama de funcionamiento de RapidWatch™
+
+```
+[Cambio en archivo] → [Detección] → [Análisis] → [Gestión de proceso]
+      ↓                  ↓             ↓               ↓
+  src/file.ts      Notificación   Evaluación    Reinicio optimizado
+                      visual     de relevancia    de la aplicación
+```
+
+### Comparativa con otras soluciones
+
+| Característica                        | RapidWatch™ (RapidFAST) | nodemon       | ts-node-dev   |
+|--------------------------------------|------------------------|---------------|---------------|
+| Integración nativa con RapidFAST      | ✅ Completa            | ❌ Ninguna     | ❌ Ninguna     |
+| Optimizado para TypeScript            | ✅ Sí                  | ⚠️ Parcial     | ✅ Sí         |
+| Soporte para rutas con espacios       | ✅ Mejorado            | ⚠️ Problemático| ⚠️ Problemático|
+| Manejo de caracteres especiales       | ✅ Completo            | ⚠️ Parcial     | ⚠️ Parcial    |
+| Banner visual personalizado           | ✅ Sí                  | ❌ No          | ❌ No         |
+| Notificaciones con gradientes         | ✅ Sí                  | ❌ No          | ❌ No         |
+| Dependencia externa                   | ✅ Ninguna             | ❌ Requiere instalación | ❌ Requiere instalación |
+| Arranque rápido                       | ✅ Optimizado          | ⚠️ Estándar    | ⚠️ Estándar   |
+| Documentación específica RapidFAST    | ✅ Completa            | ❌ Genérica    | ❌ Genérica    |
+
+### Solución de problemas con RapidWatch™
+
+#### Error al iniciar el servidor
+
+Si RapidWatch™ muestra error al iniciar el servidor:
+
+1. **Verificar estructura del proyecto**: Asegúrate de que tu proyecto sigue la estructura requerida:
+   ```
+   src/
+   ├── app/
+   │   └── app.module.ts
+   └── main.ts
+   ```
+
+2. **Dependencias faltantes**: RapidWatch™ intentará instalar automáticamente las dependencias necesarias, pero si falla, ejecuta:
+   ```bash
+   npm install typescript ts-node chokidar
+   ```
+
+3. **Permisos de sistema**: En Windows, asegúrate de tener permisos adecuados para ejecutar procesos.
+
+#### RapidWatch™ no detecta cambios
+
+Si los cambios en archivos no son detectados:
+
+1. **Verifique la extensión del archivo**: Solo se monitorizan archivos `.ts`, `.js` y `.json`.
+2. **Ubicación de archivos**: Los archivos deben estar dentro de la carpeta `src/`.
+3. **Sistemas de archivos remotos**: En sistemas NFS o volúmenes montados remotamente, use la opción `--no-watch` y reinicie manualmente.
+4. **Problemas con rutas largas en Windows**: Si la ruta del proyecto es muy larga, considere moverlo a una ruta más corta.
+
+#### Trabajando con rutas que contienen espacios
+
+RapidWatch™ ha sido especialmente optimizado para manejar rutas con espacios, sin embargo:
+
+1. En Windows, si experimentas problemas, actualiza a la última versión de RapidFAST.
+2. Si persisten los problemas, considera usar rutas sin espacios para máxima compatibilidad.
+
+## 🧩 Estructura de directorios recomendada
+
+Para aprovechar al máximo RapidFAST, recomendamos la siguiente estructura de directorios:
+
+```
+mi-proyecto/
+├── src/                      # Código fuente
+│   ├── app/                  # Módulos de la aplicación
+│   │   ├── app.module.ts     # Módulo principal
+│   │   ├── app.controller.ts # Controlador principal
+│   │   ├── modules/          # Módulos adicionales
+│   │   │   ├── users/        # Módulo de usuarios
+│   │   │   │   ├── users.module.ts
+│   │   │   │   ├── users.controller.ts
+│   │   │   │   ├── users.service.ts
+│   │   │   │   └── dto/      # Objetos de transferencia de datos
+│   │   │   └── auth/         # Módulo de autenticación
+│   │   └── shared/           # Recursos compartidos
+│   ├── config/               # Configuraciones
+│   │   ├── environment.ts
+│   │   └── database.ts
+│   ├── middleware/           # Middleware personalizado
+│   ├── models/               # Modelos de datos
+│   ├── guards/               # Guardias de rutas
+│   └── main.ts               # Punto de entrada
+├── public/                   # Archivos estáticos
+├── test/                     # Pruebas
+├── .env                      # Variables de entorno
+├── .env.example              # Ejemplo de variables
+├── package.json
+└── tsconfig.json
+```
+
+## 📋 Convenciones recomendadas
+
+Para mantener la consistencia en proyectos RapidFAST:
+
+- **Módulos**: Nombrar en singular, camelCase (`userModule.ts`)
+- **Controladores**: Sufijo "Controller" (`userController.ts`)
+- **Servicios**: Sufijo "Service" (`userService.ts`)
+- **Rutas REST**: Plural, kebab-case (`/api/users`)
+- **Variables de entorno**: UPPERCASE_WITH_UNDERSCORE
+- **Archivos**: kebab-case (`user-profile.service.ts`)
+- **Interfaces**: CamelCase con prefijo I (`IUserData`)
+- **DTOs**: Sufijo "Dto" (`CreateUserDto`)
+
+## 🆕 Novedades en la versión 1.0.6-beta.8
+
+### Mejoras en Swagger y agrupación de endpoints
+
+- **Nuevo decorador de controlador mejorado**:
+  ```typescript
+  @Controller({
+    prefix: 'todos',
+    tags: ['Tareas'],
+    description: 'API para gestionar tareas'
+  })
+  ```
+
+- **Agrupación directa en controladores**:
+  - Tags definidos en el decorador `@Controller` se aplican a todos los endpoints
+  - Descripción detallada para cada grupo de endpoints
+  - Organización visual mejorada en la interfaz Swagger
+
+- **Sistema de procesamiento de rutas optimizado**:
+  - Mejor manejo de middleware y parámetros
+  - Respuestas consistentes y tipado mejorado
+  - Detección automática de errores
+
+- **Compatibilidad con versiones anteriores**:
+  - Mantiene soporte para el decorador `@ApiDoc`
+  - Migración gradual a la nueva sintaxis
+  - No requiere cambios inmediatos en el código existente
+
+- **Correcciones en la configuración**:
+  - Solución a errores de tipos en interfaces Swagger
+  - Mayor robustez en la carga de configuración
+  - Valores por defecto para propiedades obligatorias
+
+- **Plantillas actualizadas**:
+  - Ejemplos de controladores con la nueva sintaxis
+  - Configuración Swagger optimizada
+  - Mejor estructura para aplicaciones nuevas
+
+### RapidWatch™ Ultra
+
+- **Monitoreo Universal**:
+  - Detección de cambios en cualquier tipo de archivo (no solo TypeScript)
+  - Soporte para múltiples patrones: `.env`, `config/`, `public/`, `templates/`
+  - Filtrado inteligente para ignorar archivos no relevantes
+
+## 🆕 Novedades en la versión 1.0.6-beta.7
+
+### Sistema de Configuración Mejorado
+
+- **Configuración TypeScript para Swagger**:
+  - Soporte para archivos `swagger.config.ts` con autocompletado
+  - Sistema de prioridad: valores por defecto → archivo de configuración → variables de entorno
+  - Carga dinámica de configuraciones según el entorno actual
+
+- **Variables de Entorno Inteligentes**:
+  - Recarga automática de variables de entorno sin reinicio del servidor
+  - Detección de cambios en archivos `.env` y variantes (`.env.development`, etc.)
+  - Endpoint interno `/_rapidfast/reload-env` para actualizaciones en caliente
+
+### RapidWatch™ Ultra
+
+- **Monitoreo Universal**:
+  - Detección de cambios en cualquier tipo de archivo (no solo TypeScript)
+  - Soporte para múltiples patrones: `.env`, `config/`, `public/`, `templates/`
+  - Filtrado inteligente para ignorar archivos no relevantes
+
+- **Interfaz de Consola Moderna**:
+  - Tablas perfectamente alineadas con bordes uniformes
+  - Clasificación automática de tipos de archivos modificados
+  - Sistema de colores mejorado para mejor legibilidad
+
+- **Optimizaciones de Rendimiento**:
+  - Debounce configurable para prevenir múltiples reinicios innecesarios
+  - Estrategia `awaitWriteFinish` para esperar a que los archivos se guarden completamente
+  - Recarga selectiva: sólo cuando es necesario reiniciar la aplicación completa
+
+### Mejoras Generales
+
+- **Reemplazo de `switch/case` por objetos de mapeo**:
+  - Código más limpio y mantenible en todo el framework
+  - Mejor rendimiento al procesar rutas y eventos
+  - Facilita la extensión para nuevos tipos de eventos
+
+- **Actualizaciones en Plantillas**:
+  - Nueva estructura de directorio `config/` en proyectos generados
+  - Archivos `.env.template` con ejemplos completos
+  - Documentación integrada en forma de archivos README
+
+- **Múltiples Correcciones**:
+  - Solución a problemas de alineación en la consola
+  - Mejor manejo de errores en la carga de archivos de configuración
+  - Tipado mejorado y reducción de advertencias TS
+
+## 🆕 Novedades en la versión 1.0.6-beta.6
+
+### Soporte completo para Swagger
+
+- **Decoradores para documentación API**:
+  - `@ApiDoc` - Documenta controladores completos
+  - `@ApiParam` - Documenta parámetros de ruta
+  - `@ApiBody` - Documenta cuerpos de petición
+  - `@ApiResponse` - Documenta respuestas de endpoints
+  - `@ApiTags` - Agrupa operaciones bajo etiquetas
+
+- **Documentación automática**:
+  - Interfaz Swagger UI lista para usar en `/api-docs`
+  - Generación automática de esquema OpenAPI 3.0
+  - Endpoint JSON en `/swagger.json`
+
+### Arquitectura modular mejorada
+
+- **Sistema de módulos completo**:
+  - Módulos separados por funcionalidad (`TodoModule`, etc.)
+  - Importación en módulo raíz con `imports: [OtroModulo]`
+  - Exportación de servicios entre módulos con `exports: [MiServicio]`
+
+- **Plantilla modular en proyectos generados**:
+  - Estructura predefinida lista para escalar
+  - Ejemplo completo de CRUD implementado
+  - Separación clara de responsabilidades
+
+### Sistema de inyección de dependencias robusto
+
+- **Resolución automática de dependencias**:
+  - Detección y advertencia de clases no decoradas
+  - Inyección automática en constructores
+  - Soporte para providers con múltiples estrategias
+
+- **Mejor gestión de instancias**:
+  - Ciclo de vida de componentes optimizado
+  - Integración completa con el sistema de módulos
+
+### Experiencia de desarrollo mejorada
+
+- **Interfaz de consola enriquecida**:
+  - Banner mejorado con colores e iconos
+  - Mejor visualización de rutas registradas
+  - Información detallada de la aplicación
+
+- **RapidWatch™ optimizado**:
+  - Mejor rendimiento en detección de cambios
+  - Recarga más rápida del servidor
+  - Banner completo solo en el primer inicio
+
+- **Correcciones y optimizaciones**:
+  - Mejor compatibilidad con paquetes recientes
+  - Corrección de errores de tipos en TypeScript
+  - Optimizaciones en la estructura de archivos de proyecto
+
+Para más detalles sobre las nuevas características, consulta nuestra [documentación beta](docs/beta_3_features.md).
+
+## 🆕 Novedades en la versión 1.0.6-beta.2
+
+### Mejoras en el proceso de publicación beta
+
+- **Scripts robustos para publicación**:
+  - Nuevo sistema de publicación beta que funciona correctamente en Windows
+  - Scripts para ignorar errores de linting durante la publicación
+  - Herramientas para incrementar automáticamente la versión beta
+
+- **Herramientas de desarrollo mejoradas**:
+  - Script para corregir automáticamente errores de linting
+  - Utilidad para actualizar TypeScript a una versión compatible con ESLint
+  - Configuración de ESLint optimizada para reducir advertencias
+
+- **Documentación específica para beta**:
+  - Nuevo archivo BETA.md con información detallada sobre la versión beta
+  - Documentación de las mejoras realizadas en el proceso de publicación
+  - Instrucciones claras para reportar problemas
+
+- **Correcciones de bugs**:
+  - Solución al problema con el operador `|| true` en Windows
+  - Mejor manejo de errores durante el proceso de publicación
+  - Compatibilidad mejorada con TypeScript 5.3+
+
+### Cambios internos
+
+- Proceso de publicación beta más robusto y resistente a errores
+- Mayor facilidad de uso con scripts simplificados
+- Mejor experiencia de desarrollo con herramientas de linting mejoradas
+- Documentación más completa para usuarios de la versión beta
+
+Para más detalles sobre las mejoras en la versión beta, consulta el archivo [BETA.md](BETA.md).
+
+## 🆕 Novedades en la versión 1.0.4
+
+### Mejoras principales
+
+- **RapidWatch™ Mejorado**: 
+  - Solución avanzada para rutas con espacios en Windows
+  - Detección más rápida de cambios en archivos
+  - Banner visual mejorado con gradientes de color
+  - Menor huella de memoria
+
+- **CLI robusto**:
+  - Validación de nombres de proyecto y rutas
+  - Mejor manejo de errores con mensajes claros
+  - Soporte para caracteres especiales en rutas
+
+- **Generación de proyectos mejorada**:
+  - Nueva estructura de directorios optimizada
+  - Plantillas actualizadas con buenas prácticas
+  - Configuraciones de TypeScript optimizadas
+  - Eliminación de dependencias innecesarias
+
+- **Correcciones de bugs**:
+  - Solución a problemas EPERM en Windows
+  - Mejor manejo de permisos de directorios
+  - Correcciones en la inicialización de MongoDB
+
+### Cambios internos
+
+- Eliminadas dependencias obsoletas
+- Optimizaciones de rendimiento
+- Mejora en la compatibilidad con Node.js 18+
+- Actualización de todas las dependencias a versiones estables
+
+### Cambios que rompen la compatibilidad
+
+- Eliminada dependencia de nodemon (sustituida por RapidWatch™)
+- La estructura de carpetas generada ahora usa `/test` en lugar de `/api`
+- Las configuraciones avanzadas de servidor ahora requieren usar serve.config.js
+
+## 📄 Licencia y propiedad intelectual
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+RapidFAST Framework y RapidWatch™ son marcas registradas y propiedad intelectual de Angelito Systems. El uso del nombre "RapidWatch" o su logotipo en otros proyectos está prohibido sin autorización expresa.
+
+---
+
+Desarrollado con ❤️ por [Angelito Systems](https://github.com/angelitosystems)  
+Copyright © 2025 Angelito Systems

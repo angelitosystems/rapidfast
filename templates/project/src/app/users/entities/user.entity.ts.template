@@ -1,0 +1,22 @@
+import { Entity, Column, BaseEntity} from '@angelitosystems/rapidfast';
+
+@Entity('users')
+export class User extends BaseEntity {
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ unique: true, length: 255 })
+  email: string;
+
+  @Column({ length: 255 })
+  password: string;
+
+  @Column({ default: 'user', length: 20 })
+  role: string;
+
+  @Column({ default: true, name: 'is_active' })
+  isActive: boolean;
+
+  @Column({ nullable: true, name: 'last_login' })
+  lastLogin?: Date;
+} 

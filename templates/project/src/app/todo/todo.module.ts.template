@@ -1,0 +1,10 @@
+import { Module } from '@angelitosystems/rapidfast';
+import { TodoController } from './todo.controller';
+import { TodoService } from './todo.service';
+
+@Module({
+  controllers: [TodoController],
+  providers: [TodoService],
+  exports: [TodoService]
+})
+export class TodoModule {}

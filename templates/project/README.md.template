@@ -1,0 +1,117 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## Instalación
+
+```bash
+# Instalar dependencias
+npm install
+```
+
+## Configuración
+
+1. Copia el archivo `.env.example` a `.env` y configura tus variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+2. Edita el archivo `.env` con tus datos de conexión a la base de datos.
+
+### Configuración de MySQL 8+
+
+Si estás usando MySQL 8 o superior, es posible que necesites cambiar el método de autenticación para compatibilidad. Ejecuta los siguientes comandos SQL:
+
+```sql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'tu_contraseña';
+FLUSH PRIVILEGES;
+```
+
+O si prefieres crear un nuevo usuario:
+
+```sql
+CREATE USER 'usuario'@'localhost' IDENTIFIED WITH mysql_native_password BY 'contraseña';
+GRANT ALL PRIVILEGES ON *.* TO 'usuario'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+## 🚀 Inicio Rápido
+
+1. **Desarrollo**
+   ```bash
+   npm run dev
+   # o
+   pnpm dev
+   # o
+   yarn dev
+   ```
+   El servidor se iniciará en `http://localhost:3000` y la documentación de Swagger se abrirá automáticamente en tu navegador.
+
+2. **Producción**
+   ```bash
+   npm run build
+   npm start
+   # o
+   pnpm build
+   pnpm start
+   # o
+   yarn build
+   yarn start
+   ```
+
+## 📚 Documentación API
+
+La documentación de la API está disponible en:
+- Swagger UI: `http://localhost:3000/api-docs`
+- Swagger JSON: `http://localhost:3000/swagger.json`
+
+## 🛠️ Scripts Disponibles
+
+- `npm run dev` - Inicia el servidor en modo desarrollo con recarga automática
+- `npm run build` - Compila el proyecto para producción
+- `npm start` - Inicia el servidor en modo producción
+- `npm run test` - Ejecuta las pruebas
+- `npm run lint` - Ejecuta el linter
+- `npm run format` - Formatea el código
+
+## 📝 Ejemplo de API
+
+El proyecto incluye un ejemplo de API REST para gestionar tareas (TODOs) con las siguientes operaciones:
+
+- `GET /todos` - Obtener todas las tareas
+- `GET /todos/:id` - Obtener una tarea por ID
+- `POST /todos` - Crear una nueva tarea
+- `PUT /todos/:id` - Actualizar una tarea existente
+- `DELETE /todos/:id` - Eliminar una tarea
+
+Cada endpoint está completamente documentado en Swagger con ejemplos de uso y descripciones detalladas.
+
+## 🔧 Tecnologías
+
+- [RapidFast](https://github.com/angelitosystems/rapidfast) - Framework web moderno y rápido
+- TypeScript - Lenguaje de programación tipado
+- Swagger/OpenAPI - Documentación de API
+- Jest - Framework de pruebas
+
+## 📄 Licencia
+
+ISC 
+
+## Estructura del proyecto
+
+- `src/`: Código fuente
+  - `app/`: Módulos de la aplicación
+    - `users/`: Módulo de usuarios (autenticación)
+    - `todo/`: Ejemplo de módulo de tareas
+  - `config/`: Archivos de configuración
+  - `database/`: Configuración de base de datos y migraciones
+
+## Características
+
+- Arquitectura modular basada en decoradores
+- Soporte para base de datos con TypeORM
+- Documentación automática con Swagger
+- Autenticación JWT
+- Hot Reload en desarrollo
+- Escalable y fácil de mantener 

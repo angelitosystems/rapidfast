@@ -1,0 +1,36 @@
+import { Controller, Get, ApiTags, ApiResponse } from '@angelitosystems/rapidfast';
+import { AppService } from './app.service';
+
+@Controller({
+  prefix: '',
+  tags: ['Sistema'],
+  description: 'Endpoints principales del sistema'
+})
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get('/')
+  @ApiResponse({
+    status: 200,
+    description: 'Mensaje de bienvenida',
+    type: String
+  })
+  getHello(): string {
+    return this.appService.getWelcomeMessage();
+  }
+
+  @Get('/estado')
+  @ApiResponse({
+    status: 200,
+    description: 'Información sobre el estado del sistema',
+    type: Object
+  })
+  getStatus(): object {
+    return {
+      estado: 'activo',
+      uptime: process.uptime(),
+      memoria: process.memoryUsage(),
+      version: process.version
+    };
+  }
+}

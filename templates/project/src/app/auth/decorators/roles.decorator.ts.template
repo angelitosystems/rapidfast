@@ -1,0 +1,26 @@
+import { createMethodDecorator } from '@angelitosystems/rapidfast';
+
+export function Roles(...roles: string[]) {
+  return createMethodDecorator((req, res, next) => {
+    // Verificar si hay un usuario en el request
+    const user = (req as any).user;
+    
+    if (!user) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+    
+    // Si no se especifican roles, solo verificar que esté autenticado
+    if (roles.length === 0) {
+      return next();
+    }
+    
+    // Verificar si el usuario tiene alguno de los roles requeridos
+    const hasRole = roles.some(role => user.role === role);
+    
+    if (!hasRole) {
+      return res.status(403).json({ message: 'No autorizado' });
+    }
+    
+    next();
+  });
+} 

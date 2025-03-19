@@ -1,0 +1,11 @@
+import { createParamDecorator } from '@angelitosystems/rapidfast';
+
+export const CurrentUser = createParamDecorator((data, req) => {
+  // Si se solicita una propiedad específica del usuario
+  if (data) {
+    return req.user?.[data];
+  }
+  
+  // Si no, devolver el usuario completo
+  return req.user;
+}); 

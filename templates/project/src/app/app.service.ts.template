@@ -1,0 +1,75 @@
+import { Injectable } from '@angelitosystems/rapidfast';
+import { randomUUID } from 'crypto';
+import { Todo } from './todo/todo.service';
+
+@Injectable()
+export class AppService {
+  private todos: Todo[] = [];
+
+  constructor() {
+    // Añadir algunos datos de ejemplo
+    this.todos.push(
+      {
+        id: '1',
+        title: 'Aprender RapidFAST',
+        description: 'Estudiar la documentación y crear una API',
+        completed: false,
+        createdAt: new Date()
+      },
+      {
+        id: '2',
+        title: 'Construir un proyecto',
+        description: 'Implementar un proyecto usando RapidFAST',
+        completed: false,
+        createdAt: new Date()
+      }
+    );
+  }
+
+  getAllTodos(): Todo[] {
+    return this.todos;
+  }
+
+  getTodoById(id: string): Todo | undefined {
+    return this.todos.find(todo => todo.id === id);
+  }
+
+  createTodo(todoData: Omit<Todo, 'id'>): Todo {
+    const newTodo: Todo = {
+      id: randomUUID(),
+      ...todoData,
+      createdAt: new Date()
+    };
+    
+    this.todos.push(newTodo);
+    return newTodo;
+  }
+
+  updateTodo(id: string, updates: Partial<Todo>): Todo | undefined {
+    const todoIndex = this.todos.findIndex(todo => todo.id === id);
+    
+    if (todoIndex === -1) {
+      return undefined;
+    }
+    
+    const updatedTodo: Todo = {
+      ...this.todos[todoIndex],
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.todos[todoIndex] = updatedTodo;
+    return updatedTodo;
+  }
+
+  deleteTodo(id: string): boolean {
+    const initialLength = this.todos.length;
+    this.todos = this.todos.filter(todo => todo.id !== id);
+    return this.todos.length !== initialLength;
+  }
+
+  // Un método simple para la página de inicio
+  getWelcomeMessage(): string {
+    return '¡Bienvenido a la API de RapidFAST!';
+  }
+}

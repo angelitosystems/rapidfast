@@ -1,0 +1,103 @@
+import { Injectable } from '@angelitosystems/rapidfast';
+import { sign, verify, JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
+import { compare, hash } from 'bcrypt';
+import { UserService } from '../users/user.service';
+import { User } from '../users/entities/user.entity';
+
+interface TokenPayload {
+  sub: number;
+  email: string;
+}
+
+@Injectable()
+export class AuthService {
+  constructor(private readonly userService: UserService) {}
+
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userService.findByEmail(email);
+    
+    if (!user) {
+      return null;
+    }
+    
+    const isPasswordValid = await compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      return null;
+    }
+    
+    return user;
+  }
+
+  async login(user: User): Promise<{ accessToken: string; user: Partial<User> }> {
+    const payload: TokenPayload = {
+      sub: user.id,
+      email: user.email
+    };
+
+    const secret = process.env.JWT_SECRET || 'your_fallback_secret';
+    const expiresIn = process.env.JWT_EXPIRES_IN || '1d';
+    
+    // Convertir expiresIn a un tipo compatible
+    const options: SignOptions = { 
+      expiresIn: expiresIn as any 
+    };
+    
+    const accessToken = sign(payload, secret, options);
+    
+    // Excluir la contraseña de la respuesta
+    const { password, ...result } = user;
+    
+    return {
+      accessToken,
+      user: result
+    };
+  }
+
+  async register(userData: Partial<User>): Promise<User> {
+    // Verificar si el usuario ya existe
+    const existingUser = await this.userService.findByEmail(userData.email as string);
+    
+    if (existingUser) {
+      throw new Error('El usuario ya existe');
+    }
+    
+    // Encriptar la contraseña
+    const hashedPassword = await hash(userData.password as string, 10);
+    
+    // Crear el usuario
+    return this.userService.create({
+      ...userData,
+      password: hashedPassword
+    });
+  }
+
+  async validateToken(token: string): Promise<TokenPayload | null> {
+    try {
+      const secret = process.env.JWT_SECRET || 'your_fallback_secret';
+      const decoded = verify(token, secret as Secret);
+      
+      const payload = decoded as JwtPayload;
+      if (typeof payload !== 'object' || !payload.sub) {
+        return null;
+      }
+      
+      return {
+        sub: Number(payload.sub),
+        email: payload.email as string
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getUserFromToken(token: string): Promise<User | null> {
+    const payload = await this.validateToken(token);
+    
+    if (!payload) {
+      return null;
+    }
+    
+    return this.userService.findById(payload.sub);
+  }
+}

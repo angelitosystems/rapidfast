@@ -1,0 +1,11 @@
+import { IsEmail, IsString, MinLength, Transform } from '@angelitosystems/rapidfast';
+
+export class LoginDto {
+  @IsEmail()
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+} 
